@@ -56,12 +56,12 @@ public class OffersDataApiApiTest {
         System.out.println("\nProduct Name: Visa Merchant Offers Resource Center\nApi Name: Offers Data API");
         ApiClient apiClient = new ApiClient();
         // Configure HTTP basic authorization: basicAuth
-        apiClient.setUsername("LLT3CK0NZYQT1M9DIOBJ21o-cByoaU-GqBdx2aQm_RFXrBNj0");
-        apiClient.setPassword("o2iEIyXC6op8tB7B");
-        apiClient.setKeystorePath("/home/nilesh015/Desktop/VDP/security/myProject_keyAndCertBundle.jks");
-        apiClient.setKeystorePassword("password");
-        apiClient.setPrivateKeyPassword("password");
-        
+        apiClient.setUsername("YOUR USERNAME");
+        apiClient.setPassword("YOUR PASSWORD");
+        apiClient.setKeystorePath("YOUR KEYSTORE PATH");
+        apiClient.setKeystorePassword("YOUR KEYSTORE PASSWORD");
+        apiClient.setPrivateKeyPassword("YOUR PRIVATEKEY PASSWORD");
+
         // To set proxy uncomment the below lines
         // apiClient.setProxyHostName("proxy.address@example.com");
         // apiClient.setProxyPortNumber(0000);
@@ -90,7 +90,11 @@ public class OffersDataApiApiTest {
     /**
      * 
      *
-     * Request for offers by content id
+     * RequapiClient.setUsername("LLT3CK0NZYQT1M9DIOBJ21o-cByoaU-GqBdx2aQm_RFXrBNj0");
+        apiClient.setPassword("o2iEIyXC6op8tB7B");
+        apiClient.setKeystorePath("/home/nilesh015/Desktop/VDP/security/myProject_keyAndCertBundle.jks");
+        apiClient.setKeystorePassword("password");
+        apiClient.setPrivateKeyPassword("password");est for offers by content id
      *
      * @throws ApiException
      *          if the Api call fails
