@@ -46,9 +46,10 @@ public class MerchantSearchCall {
         ArrayList<String> attributes= new ArrayList<String>();
         String postalCode = response.getMerchantSearchpostResponse().getResponse().get(0).getResponseValues().getMerchantPostalCode();
         String mCC = response.getMerchantSearchpostResponse().getResponse().get(0).getResponseValues().getMerchantCategoryCode().get(0);
-
+        String city = response.getMerchantSearchpostResponse().getResponse().get(0).getResponseValues().getMerchantCity();
         attributes.add(postalCode);
         attributes.add(mCC);
+        attributes.add(city);
 
         //String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
         return attributes;
