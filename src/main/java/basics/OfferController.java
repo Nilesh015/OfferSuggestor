@@ -23,11 +23,12 @@ public class OfferController {
         System.out.println(postalCode);
         System.out.println(mCC);
         System.out.println(city);
-        ArrayList<String> PostalCodes = callMerchantLocator(postalCode,mCC);
+        //ArrayList<String> PostalCodes = callMerchantLocator(postalCode,mCC);
         //System.out.println("hello after locator");
         //System.out.println(json);
-        ArrayList<Double> json1 = callMerchantMeasurement1(postalCode,mCC,PostalCodes,city);
-        return json1.toString();
+        //ArrayList<Double> json1 = callMerchantMeasurement1(postalCode,mCC,PostalCodes,city);
+        String json = parameterRecommender(postalCode,mCC);
+        return json;
     }
 
     public ArrayList<String> callMerchantLocator(String postalCode,String mCC) throws IOException {
@@ -46,11 +47,11 @@ public class OfferController {
                 if(!PostalCodes.contains(s)) {
                     PostalCodes.add(s);
                 }
-                //json += "[ " + merchants.get(j).get(0) + " , " + merchants.get(j).get(1) + " , "+ merchants.get(j).get(2) +  " , "+ merchants.get(j).get(3) +" ] ";
+                json += "[ " + merchants.get(j).get(0) + " , " + merchants.get(j).get(1) + " ] ";
             }
         }
         //PostalCodes.add(json);
-        System.out.println(PostalCodes);
+        System.out.println(json);
         return PostalCodes;
         //return json;
     }
@@ -77,10 +78,19 @@ public class OfferController {
         return json;
     }*/
 
-    @GetMapping("/vmorc")
-    public String callVMORC() throws IOException {
+    public String parameterRecommender(String postalCode,String mCC) throws IOException {
         OffersDataApiCall newCall = new OffersDataApiCall();
-        String json = newCall.getBestOfferParameters();
+        MerchantLocatorCall merchCall = new MerchantLocatorCall();
+        ArrayList<ArrayList<String>> merchants = new ArrayList<ArrayList<String>>();
+        ArrayList<Integer> merchantIDs = new ArrayList<Integer>();
+        for(int i = 2; i < 8;i++){
+            merchants = merchCall.postMerchantLocatorHandler(i,postalCode,mCC);
+            for(int j = 0; j < merchants.size();j++) {
+                int merchantID = Integer.parseInt(merchants.get(j).get(0));
+                merchantIDs.add(merchantID);
+            }
+        }
+        String json = newCall.getBestOfferParameters(merchantIDs);
         return json;
     }
 }
