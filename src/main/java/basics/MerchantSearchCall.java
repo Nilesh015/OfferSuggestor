@@ -15,14 +15,14 @@ public class MerchantSearchCall {
     private final MerchantSearchApi api;
 
     public MerchantSearchCall(){
-        System.out.println("\nProduct Name: Merchant Search\nApi Name: Merchant Search API");
+        //System.out.println("\nProduct Name: Merchant Search\nApi Name: Merchant Search API");
         ApiClient apiClient = new ApiClient();
         // Configure HTTP basic authorization: basicAuth
-        apiClient.setUsername("LLT3CK0NZYQT1M9DIOBJ21o-cByoaU-GqBdx2aQm_RFXrBNj0");
-        apiClient.setPassword("o2iEIyXC6op8tB7B");
-        apiClient.setKeystorePath("/home/nilesh015/Desktop/VDP/security/myProject_keyAndCertBundle.jks");
-        apiClient.setKeystorePassword("password");
-        apiClient.setPrivateKeyPassword("password");
+        apiClient.setUsername("YOUR USERNAME");
+        apiClient.setPassword("YOUR PASSWORD");
+        apiClient.setKeystorePath("YOUR KEYSTORE PATH");
+        apiClient.setKeystorePassword("YOUR KEYSTORE PASSWORD");
+        apiClient.setPrivateKeyPassword("YOUR PRIVATEKEY PASSWORD");
 
         // To set proxy uncomment the below lines
         // apiClient.setProxyHostName("proxy.address@example.com");
@@ -62,13 +62,13 @@ public class MerchantSearchCall {
         ObjectMapper mapper = new ObjectMapper();
         MerchantSearchpostPayload body = mapper.readValue(jsonPayload, MerchantSearchpostPayload.class);
 
-        System.out.println(merchantID + "," + city + "," + postalCode);
+        //System.out.println(merchantID + "," + city + "," + postalCode);
         ModelResponse response = api.postmerchantSearch(body);
         String pVal = response.getMerchantSearchpostResponse().getResponse().get(0).getResponseValues().getMerchantPostalCode();
         pVal = pVal.substring(0,pVal.indexOf('-'));
         String cVal = response.getMerchantSearchpostResponse().getResponse().get(0).getMatchIndicators().getMerchantCity();
         String mVal = response.getMerchantSearchpostResponse().getResponse().get(0).getMatchIndicators().getVisaMerchantId();
-        System.out.println(mVal + "," + cVal + "," + pVal);
+        //System.out.println(mVal + "," + cVal + "," + pVal);
         if(mVal.equals("N"))//Same Country
             return 4;
         //mVal is Y
