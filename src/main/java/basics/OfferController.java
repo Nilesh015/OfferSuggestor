@@ -17,7 +17,7 @@ public class OfferController {
         MerchantSearchCall newCall = new MerchantSearchCall();
         ArrayList<String> attributes = new ArrayList<String>();
         attributes = newCall.postMerchantSearchHandler(storeID);
-        //System.out.println(attributes.size());
+
         String postalCode = (attributes.get(0)).substring(0, attributes.get(0).indexOf('-'));
         String mCC = attributes.get(1);
         String city = attributes.get(2);
@@ -25,15 +25,14 @@ public class OfferController {
         System.out.println(mCC);
         System.out.println(city);
         ArrayList<ArrayList<String>> PostalCodesMerchantIDs = getMerchantIDAndPostalCodeList(postalCode,mCC);
-        //System.out.println("hello after locator");
-        //System.out.println(json);
+
+
         ArrayList<String> uniquePostalCodes = new ArrayList<String>();
         for(int i = 0;i < PostalCodesMerchantIDs.get(0).size();i++){
             if(!uniquePostalCodes.contains(PostalCodesMerchantIDs.get(0).get(i)))
                 uniquePostalCodes.add(PostalCodesMerchantIDs.get(0).get(i));
         }
         ArrayList<Double> MerchantPercentages = callMerchantMeasurement1(postalCode,mCC,uniquePostalCodes,city);
-        //calculateOfferPoints();
 
         OffersDataApiCall offerCall = new OffersDataApiCall();
         String json = offerCall.getBestOfferParameters(PostalCodesMerchantIDs,MerchantPercentages,postalCode,city);
@@ -72,9 +71,14 @@ public class OfferController {
     }
 
     public ArrayList<Double> callMerchantMeasurement1(String postalCode, String mCC, ArrayList<String> PostalCodes, String city) throws IOException {
+        Random rand = new Random();
         MerchantMeasurementCall newCall = new MerchantMeasurementCall();
         ArrayList<Double> Percentages = new ArrayList<Double>();
-        int i = 0;
+        for(int i=0;i<4;i++){ //manually filled should be removed later
+            Percentages.add(-30.0 + (60.0)*rand.nextDouble());
+        }
+        return Percentages;
+       /* int i = 0;
         for(i = 1; i <= 4;i++){
             double j = newCall.postMerchantBenchmarkHandler(i,postalCode,mCC,PostalCodes,city);//for postal code
             Percentages.add(j);
@@ -82,7 +86,7 @@ public class OfferController {
         System.out.println(mCC);
         System.out.println(Percentages);
         //return json;
-        return Percentages;
+        return Percentages; */
     }
     /*
     @GetMapping("/measure")

@@ -126,20 +126,29 @@ public class OffersDataApiCall {
         HashMap<Integer,ArrayList<String>> additionalMerchants = new HashMap<Integer,ArrayList<String>>();
         additionalMerchants = populate(offerIdList,numOffers);
 
+        HashMap<Integer, ArrayList<Integer>> merchantCounts = new HashMap<Integer, ArrayList<Integer>>();
+        merchantCounts = getMerchantCount(offerBasedResponse,offerIdList,PostalCodesMerchantIDs,additionalMerchants,searchPCode,searchCity,numOffers);
+
+        ArrayList<Double> ScorePoints = calculateScorePoints(MerchantPercentages,merchantCounts,offerIdList);
+        ArrayList<Integer> sortedOfferIdList = calculateOfferPoints(MerchantPercentages,merchantCounts,offerIdList,ScorePoints);
+
+        double sum=0;
+        for(int i=0;i < ScorePoints.size();i++){
+            sum += ScorePoints.get(i);
+        }
+        for(int i=0;i<ScorePoints.size();i++){ //normalized
+            ScorePoints.set(i,ScorePoints.get(i)/sum);
+        }
+
         //Get best offer parameters
-        String bestPromotionChannel = getBestPromotionChannel(response,numOffers);
-        String bestCardProduct = getBestCardProduct(response,numOffers);
-        String bestOfferType = getBestOfferType(response,numOffers);
+        String bestPromotionChannel = getBestPromotionChannel(response,numOffers,ScorePoints);
+        String bestCardProduct = getBestCardProduct(response,numOffers,ScorePoints);
+        String bestOfferType = getBestOfferType(response,numOffers,ScorePoints);
 
         OfferSuggestorResponse new_res = new OfferSuggestorResponse();
         new_res.setBestPromotionChannel(bestPromotionChannel);
         new_res.setBestCardProduct(bestCardProduct);
         new_res.setBestOfferType(bestOfferType);
-
-        HashMap<Integer, ArrayList<Integer>> merchantCounts = new HashMap<Integer, ArrayList<Integer>>();
-        merchantCounts = getMerchantCount(offerBasedResponse,offerIdList,PostalCodesMerchantIDs,additionalMerchants,searchPCode,searchCity,numOffers);
-
-        ArrayList<Integer> sortedOfferIdList = calculateOfferPoints(MerchantPercentages,merchantCounts,offerIdList);
 
         //Return top 3 offer details
         List<OfferItem> oList = new ArrayList<OfferItem>();
@@ -162,9 +171,7 @@ public class OffersDataApiCall {
         return json;
     }
 
-    public ArrayList<Integer> calculateOfferPoints(ArrayList<Double> MerchantPercentages, HashMap<Integer, ArrayList<Integer>> merchantCounts, ArrayList<Integer> offerIdList){
-        Random rand = new Random();
-        ArrayList<Double> ScorePoints = new ArrayList<Double>();
+    public ArrayList<Integer> calculateOfferPoints(ArrayList<Double> MerchantPercentages, HashMap<Integer, ArrayList<Integer>> merchantCounts, ArrayList<Integer> offerIdList, ArrayList<Double> ScorePoints){
         /*
         * Assigned Priority Points for our algorithm
         * Priority for:
@@ -173,15 +180,6 @@ public class OffersDataApiCall {
         * Same City - 0.5
         * Same Country - 0.2
         */
-        for(int i=0;i< offerIdList.size();i++) {
-            ScorePoints.add(0.0);
-        }
-        double[] PriorityPoints = {0.9,0.7,0.5,0.2};
-        for(int i=0;i< offerIdList.size();i++){
-            for(int j=0;j<4;j++){
-                ScorePoints.set(i, ScorePoints.get(i) + merchantCounts.get(offerIdList.get(i)).get(j) * PriorityPoints[j] * (1 + (MerchantPercentages.get(j)/25)));
-            }
-        }
         HashMap<Integer,Double> H = new HashMap<Integer, Double>();
         for(int i = 0; i < offerIdList.size();i++){
             H.put(offerIdList.get(i),ScorePoints.get(i));
@@ -194,6 +192,28 @@ public class OffersDataApiCall {
             sortedOfferIdList.add(entry.getKey());
         }
         return sortedOfferIdList;
+    }
+
+    public ArrayList<Double> calculateScorePoints(ArrayList<Double> MerchantPercentages, HashMap<Integer, ArrayList<Integer>> merchantCounts, ArrayList<Integer> offerIdList){
+        ArrayList<Double> ScorePoints = new ArrayList<Double>();
+        /*
+         * Assigned Priority Points for our algorithm
+         * Priority for:
+         * Same Postal Code - 0.9
+         * Nearby Postal Code - 0.7
+         * Same City - 0.5
+         * Same Country - 0.2
+         */
+        for(int i=0;i< offerIdList.size();i++) {
+            ScorePoints.add(0.0);
+        }
+        double[] PriorityPoints = {0.9,0.7,0.5,0.2};
+        for(int i=0;i< offerIdList.size();i++){
+            for(int j=0;j<4;j++){
+                ScorePoints.set(i, ScorePoints.get(i) + merchantCounts.get(offerIdList.get(i)).get(j) * PriorityPoints[j] * (1 + (MerchantPercentages.get(j)/25)));
+            }
+        }
+        return ScorePoints;
     }
 
     public HashMap<Integer, ArrayList<Integer>> getMerchantCount(RetrieveOffersByOfferIdgetResponse response, ArrayList<Integer> offerIdList, ArrayList<ArrayList<String>> PostalCodesMerchantIDs, HashMap<Integer,ArrayList<String>> additionalMerchants, String postalCode, String city, int numOffers) throws IOException{
@@ -263,93 +283,148 @@ public class OffersDataApiCall {
         System.out.println(merchantListCount);
         return merchantListCount;
     }
-    public String getBestPromotionChannel(RetrieveOffersByFiltergetResponse response,int numOffers) throws IOException{
-        HashMap<String,Integer> promotionChannelCount= new HashMap<String,Integer>();
-        int max_count = 0,count = 0;
+    public String getBestPromotionChannel(RetrieveOffersByFiltergetResponse response,int numOffers,ArrayList<Double> ScorePoints) throws IOException{
+        HashMap<String,Double> promotionChannelCount= new HashMap<String,Double>();
+        HashMap<String, Integer> promotionChannelCount1= new HashMap<String, Integer>();
+        ArrayList<String> Flag = new ArrayList<>();
+        double max_value = 0 , value =0;
+        int max_count = 0,count = 0,sum=0;
         String best_key = "";
         for(int i = 0; i < numOffers;i++){
             PromotionChannelList pList = response.getOffers().get(i).getPromotionChannelList();
+            sum = sum + pList.size();
             for(int j = 0; j < pList.size();j++){
                 String key = pList.get(j).getValue();
+                if(!Flag.contains(key)) Flag.add(key);
                 if(promotionChannelCount.containsKey(key)){
-                    count = promotionChannelCount.get(key);
-                    promotionChannelCount.put(key,count + 1);
-                    if(count > max_count)
+                    count = promotionChannelCount1.get(key);
+                    value = promotionChannelCount.get(key);
+                    promotionChannelCount.put(key,value + ScorePoints.get(i)*0.6);
+                    promotionChannelCount1.put(key,count+1);
+                    if(promotionChannelCount.get(key) > max_value)
                     {
-                        max_count = count;
+                        max_value = promotionChannelCount.get(key);
                         best_key = key;
                     }
                 }
                 else {
-                    promotionChannelCount.put(key, 1);
-                    if(max_count == 0)
+                    promotionChannelCount.put(key, ScorePoints.get(i)*0.6);
+                    promotionChannelCount1.put(key,1);
+                    if(max_value == 0)
                     {
-                        max_count = 1;
+                        max_value = ScorePoints.get(i)*0.6;
                         best_key = key;
                     }
                 }
             }
         }
+        for(int i=0;i<Flag.size();i++){
+            String key = Flag.get(i);
+            value = promotionChannelCount.get(key);
+            promotionChannelCount.put(key,value + ((promotionChannelCount1.get(key)*0.4)/sum));
+            if(promotionChannelCount.get(key) > max_value)
+            {
+                max_value = promotionChannelCount.get(key);
+                best_key = key;
+            }
+        }
+
         System.out.println(promotionChannelCount);
         return best_key;
     }
 
-    public String getBestCardProduct(RetrieveOffersByFiltergetResponse response,int numOffers) throws IOException{
-        HashMap<String,Integer> cardProductCount= new HashMap<String,Integer>();
-        int max_count = 0,count = 0;
+    public String getBestCardProduct(RetrieveOffersByFiltergetResponse response,int numOffers,ArrayList<Double> ScorePoints) throws IOException{
+        HashMap<String,Double> cardProductCount= new HashMap<String,Double>();
+        HashMap<String,Integer> cardProductCount1 = new HashMap<>();
+        ArrayList<String> Flag = new ArrayList<>();
+        double max_value =0 , value =0 ;
+        int max_count = 0,count = 0,sum = 0;
         String best_key = "";
         for(int i = 0; i < numOffers;i++){
             CardProductList cList = response.getOffers().get(i).getCardProductList();
+            sum = sum + cList.size();
             for(int j = 0; j < cList.size();j++){
                 String key = cList.get(j).getValue();
+                if(!Flag.contains(key)) Flag.add(key);
                 if(cardProductCount.containsKey(key)){
-                    count = cardProductCount.get(key);
-                    cardProductCount.put(key,count + 1);
-                    if(count > max_count)
+                    value = cardProductCount.get(key);
+                    count = cardProductCount1.get(key);
+                    cardProductCount.put(key,value + ScorePoints.get(i)*0.6);
+                    cardProductCount1.put(key,count + 1);
+                    if(cardProductCount.get(key) > max_value)
                     {
-                        max_count = count;
+                        max_value = cardProductCount.get(key);
                         best_key = key;
                     }
                 }
                 else {
-                    cardProductCount.put(key, 1);
-                    if(max_count == 0)
+                    cardProductCount.put(key, ScorePoints.get(i)*0.6);
+                    cardProductCount1.put(key,1);
+                    if(max_value == 0)
                     {
-                        max_count = 1;
+                        max_value = ScorePoints.get(i)*0.6 ;
                         best_key = key;
                     }
                 }
+            }
+        }
+        for(int i=0;i<Flag.size();i++){
+            String key = Flag.get(i);
+            value = cardProductCount.get(key);
+            cardProductCount.put(key,value + (cardProductCount1.get(key)/sum)*0.4);
+            if(cardProductCount.get(key) > max_value)
+            {
+                max_value = cardProductCount.get(key);
+                best_key = key;
             }
         }
         System.out.println(cardProductCount);
         return best_key;
     }
 
-    public String getBestOfferType(RetrieveOffersByFiltergetResponse response, int numOffers) throws IOException{
-        HashMap<String,Integer> offerTypeCount= new HashMap<String,Integer>();
-        int max_count = 0,count = 0;
+    public String getBestOfferType(RetrieveOffersByFiltergetResponse response, int numOffers, ArrayList<Double> ScorePoints) throws IOException{
+        HashMap<String,Double> offerTypeCount= new HashMap<String,Double>();
+        HashMap<String,Integer> offerTypeCount1 = new HashMap<>();
+        ArrayList<String> Flag = new ArrayList<>();
+        double max_value = 0 , value =0 ;
+        int max_count = 0,count = 0, sum =0;
         String best_key = "";
         for(int i = 0; i < numOffers;i++){
             OfferType oList= response.getOffers().get(i).getOfferType();
+            sum = sum + oList.size();
             for(int j = 0; j < oList.size();j++){
                 String key = oList.get(j).getValue();
+                if(!Flag.contains(key)) Flag.add(key);
                 if(offerTypeCount.containsKey(key)){
-                    count = offerTypeCount.get(key);
-                    offerTypeCount.put(key,count + 1);
-                    if(count > max_count)
+                    count = offerTypeCount1.get(key);
+                    value = offerTypeCount.get(key);
+                    offerTypeCount.put(key,value + ScorePoints.get(i)*0.6);
+                    offerTypeCount1.put(key,count+1);
+                    if(offerTypeCount.get(key) > max_value)
                     {
-                        max_count = count;
+                        max_value = offerTypeCount.get(key);
                         best_key = key;
                     }
                 }
                 else {
-                    offerTypeCount.put(key, 1);
-                    if(max_count == 0)
+                    offerTypeCount.put(key, ScorePoints.get(i)*0.6);
+                    offerTypeCount1.put(key,1);
+                    if(max_value == 0)
                     {
-                        max_count = 1;
+                        max_value = ScorePoints.get(i)*0.6;
                         best_key = key;
                     }
                 }
+            }
+        }
+        for(int i=0;i<Flag.size();i++){
+            String key = Flag.get(i);
+            value = offerTypeCount.get(key);
+            offerTypeCount.put(key,value + (offerTypeCount1.get(key)/sum)*0.4);
+            if(offerTypeCount.get(key) > max_value)
+            {
+                max_value = offerTypeCount.get(key);
+                best_key = key;
             }
         }
         System.out.println(offerTypeCount);
