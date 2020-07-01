@@ -11,6 +11,16 @@ import java.util.Random;
 
 @RestController
 public class OfferController {
+    
+    @GetMapping("/filter")
+    public ArrayList<Integer> filterOffers(String business_segment,String card_payment,String card_product,String promotional_channel) throws IOException {
+        OffersDataApiCall newCall =new OffersDataApiCall();
+        ArrayList<Integer> offer_ids = new ArrayList<Integer>();
+        offer_ids=newCall.getRetrieveOffersByFilterHandler(business_segment,card_payment,card_product,promotional_channel);
+        return offer_ids;
+
+    }
+    
     @GetMapping("/search")
     public String findNearbyMerchants() throws IOException {
         String storeID = "165833808";
