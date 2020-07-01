@@ -56,11 +56,11 @@ public class MerchantSearchApiTest {
         System.out.println("\nProduct Name: Merchant Search\nApi Name: Merchant Search API");
         ApiClient apiClient = new ApiClient();
         // Configure HTTP basic authorization: basicAuth
-        apiClient.setUsername("LLT3CK0NZYQT1M9DIOBJ21o-cByoaU-GqBdx2aQm_RFXrBNj0");
-        apiClient.setPassword("o2iEIyXC6op8tB7B");
-        apiClient.setKeystorePath("/home/nilesh015/Desktop/VDP/security/myProject_keyAndCertBundle.jks");
-        apiClient.setKeystorePassword("password");
-        apiClient.setPrivateKeyPassword("password");
+        apiClient.setUsername("YOUR USERNAME");
+        apiClient.setPassword("YOUR PASSWORD");
+        apiClient.setKeystorePath("YOUR KEYSTORE PATH");
+        apiClient.setKeystorePassword("YOUR KEYSTORE PASSWORD");
+        apiClient.setPrivateKeyPassword("YOUR PRIVATEKEY PASSWORD");
 
 
         // To set proxy uncomment the below lines

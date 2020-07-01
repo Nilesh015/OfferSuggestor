@@ -1,16 +1,19 @@
 package basics;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @RestController
 public class OfferController {
+
+    private static final ConcurrentHashMap<String, ArrayList<ArrayList<String>>> merchantCache = new ConcurrentHashMap<>();
+    private ThreadPoolExecutor executorService;
 
     @Autowired
     private OffersDataApiCall offersDataApiCall;
@@ -41,7 +44,11 @@ public class OfferController {
     public OfferSuggestorResponse findNearbyMerchants(@RequestParam("storeID") String storeID) throws IOException {
         //String storeID = "165833808";
 
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start("merchant_search");
         ArrayList<String> attributes  = merchantSearchCall.postMerchantSearchHandler(storeID);
+        stopWatch.stop();
+        System.out.println(stopWatch.getLastTaskInfo());
 
         String postalCode = (attributes.get(0)).substring(0, attributes.get(0).indexOf('-'));
         String mCC = attributes.get(1);
@@ -49,7 +56,10 @@ public class OfferController {
 
         //System.out.println("Merchant Details: ");
         //System.out.println("PostalCode: " + postalCode + ", " + "Category Code: " + mCC + ", " + "City: " + city);
+        stopWatch.start("postal_codes_merchant_ids");
         ArrayList<ArrayList<String>> PostalCodesMerchantIDs = getMerchantIDAndPostalCodeList(postalCode,mCC);
+        stopWatch.stop();
+        System.out.println(stopWatch.prettyPrint());
 
         ArrayList<String> uniquePostalCodes = new ArrayList<>();
         for(int i = 0;i < PostalCodesMerchantIDs.get(0).size();i++){
@@ -59,7 +69,12 @@ public class OfferController {
 //        ArrayList<Double> MerchantPercentages = callMerchantMeasurement(postalCode,mCC,uniquePostalCodes,city);
         ArrayList<Double> MerchantPercentages = getRandomMeasurement();
         int key = 1;
-        return offersDataApiCall.getBestOfferParameters(key,PostalCodesMerchantIDs,MerchantPercentages,postalCode,city);
+        stopWatch.start("offer_suggestor_response");
+        OfferSuggestorResponse bestOfferParameters = offersDataApiCall.getBestOfferParameters(key, PostalCodesMerchantIDs, MerchantPercentages, postalCode, city);
+        stopWatch.stop();
+        System.out.println(stopWatch.getLastTaskInfo());
+        System.out.println(stopWatch.prettyPrint());
+        return bestOfferParameters;
     }
 
     @CrossOrigin
@@ -83,29 +98,46 @@ public class OfferController {
         return offersDataApiCall.getBestOfferParameters(key,PostalCodesMerchantIDs,MerchantPercentages,postalCode,city);
 
     }
-    public ArrayList<ArrayList<String>> getMerchantIDAndPostalCodeList(String postalCode,String mCC) throws IOException {
-        ArrayList<ArrayList<String>> merchants;
+    public ArrayList<ArrayList<String>> getMerchantIDAndPostalCodeList(String postalCode,String mCC) {
+        String cacheKey = postalCode + "_" + mCC;
+        if(merchantCache.containsKey(cacheKey)){
+            return merchantCache.get(cacheKey);
+        }
         ArrayList<ArrayList<String>> PostalCodesMerchantIDs = new ArrayList<>();
         ArrayList<String> PostalCodes = new ArrayList<>();
         ArrayList<String> MerchantIDs = new ArrayList<>();
         ArrayList<String> cities = new ArrayList<>();
+
+        Map<Integer, Future<ArrayList<ArrayList<String>>>> futureMap = new TreeMap<>();
         for(int i = 1;i < 8;i++) {
-            merchants = merchantLocatorCall.postMerchantLocatorHandler(i,postalCode,mCC);
-            for (ArrayList<String> merchant : merchants) {
-                String s = merchant.get(1);
-                String s1 = merchant.get(0);
-                String s2 = merchant.get(2);
-                cities.add(s2);
-                MerchantIDs.add(s1);
-                int k = s.indexOf('-');
-                s = s.substring(0, k);
-                PostalCodes.add(s);
-            }
+            int count = i;
+
+            Future<ArrayList<ArrayList<String>>> future = getExecutorService().submit(() -> merchantLocatorCall.postMerchantLocatorHandler(count, postalCode, mCC));
+            futureMap.put(count, future);
         }
+
+        futureMap.forEach((integer, arrayListFuture) -> {
+            try {
+                for (ArrayList<String> merchant : arrayListFuture.get()) {
+                    String s = merchant.get(1);
+                    String s1 = merchant.get(0);
+                    String s2 = merchant.get(2);
+                    cities.add(s2);
+                    MerchantIDs.add(s1);
+                    int k = s.indexOf('-');
+                    s = s.substring(0, k);
+                    PostalCodes.add(s);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
         PostalCodesMerchantIDs.add(PostalCodes);
         PostalCodesMerchantIDs.add(MerchantIDs);
         PostalCodesMerchantIDs.add(cities);
 
+        merchantCache.put(cacheKey,PostalCodesMerchantIDs);
         return PostalCodesMerchantIDs;
     }
 
@@ -134,5 +166,18 @@ public class OfferController {
         //System.out.println(percentages);
 
         return percentages;
+    }
+
+    private ThreadPoolExecutor getExecutorService(){
+        if(executorService == null){
+            synchronized (OfferController.class) {
+                if(executorService == null) {
+                    System.out.println("initialized threadpool.");
+                    executorService = new ThreadPoolExecutor(8, 2147483647, 10L, TimeUnit.SECONDS, new SynchronousQueue());
+                    executorService.allowCoreThreadTimeOut(true);
+                }
+            }
+        }
+        return executorService;
     }
 }
