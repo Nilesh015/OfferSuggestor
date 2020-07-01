@@ -511,11 +511,17 @@ public class OffersDataApiCall {
      *
      *          if the Api call fails
      */
-    public String getRetrieveOffersByFilterHandler() throws IOException {
+    public ArrayList<Integer> getRetrieveOffersByFilterHandler(String business_segment,String card_payment,String card_product,String promotional_channel) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        RetrieveOffersByFiltergetResponse response = api.getretrieveOffersByFilter( null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  3,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null);
-        String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
-        return json;
+        ArrayList<Integer> offer_ids = new ArrayList<Integer>();
+        RetrieveOffersByFiltergetResponse response = api.getretrieveOffersByFilter( business_segment,card_payment, card_product,  null,  null,  null,  null,  promotional_channel,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null);
+        System.out.println(response);
+        int numoffers=response.getReturnedResults();
+        for(int i=0;i<numoffers;i++) {
+            int offerId = response.getOffers().get(i).getOfferId();
+            offer_ids.add(offerId);
+        }
+        return offer_ids;
     }
 
     /**
