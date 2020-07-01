@@ -1,13 +1,14 @@
 package basics;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.visa.developer.sample.offers_data_api.ApiClient;
 import com.visa.developer.sample.offers_data_api.api.OffersDataApiApi;
 import com.visa.developer.sample.offers_data_api.model.*;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
 
+@Service
 public class OffersDataApiCall {
     private final OffersDataApiApi api;
 
@@ -35,12 +36,12 @@ public class OffersDataApiCall {
      *
      *          if the Api call fails
      */
-    public String getBestOfferParameters(ArrayList<ArrayList<String>> PostalCodesMerchantIDs, ArrayList<Double> MerchantPercentages, String searchPCode, String searchCity) throws IOException {
+    public OfferSuggestorResponse getBestOfferParameters(ArrayList<ArrayList<String>> PostalCodesMerchantIDs, ArrayList<Double> MerchantPercentages, String searchPCode, String searchCity) throws IOException {
         /*
         * Since we have dummy offers with dummy merchant ids,
         * we map each dummy merchant to a real merchant id obtained from Merchant Locator
         */
-        HashMap<Integer,Integer> ID = new HashMap<Integer, Integer>();
+        HashMap<Integer,Integer> ID = new HashMap<>();
         ID.put(80310667, 101456);
         ID.put(29992901, 101457);
         ID.put(25837910, 101458);
@@ -55,33 +56,29 @@ public class OffersDataApiCall {
             }
         }
 
-        ArrayList<String> postalCodes = new ArrayList<String>();
-        ArrayList<String> merchantIDs = new ArrayList<String>();
-
-        postalCodes = PostalCodesMerchantIDs.get(0);
-        merchantIDs = PostalCodesMerchantIDs.get(1);
+        ArrayList<String> merchantIDs = PostalCodesMerchantIDs.get(1);
 
         System.out.println(merchantIDs);
 
-        String merchantIDQuery = "";
+        StringBuilder merchantIDQueryBuilder = new StringBuilder();
         for(int i = 0; i < merchantIDs.size(); i++)
         {
             if(i == merchantIDs.size() - 1)
-                merchantIDQuery += merchantIDs.get(i);
+                merchantIDQueryBuilder.append(merchantIDs.get(i));
             else
-                merchantIDQuery += merchantIDs.get(i) + ",";
+                merchantIDQueryBuilder.append(merchantIDs.get(i)).append(",");
         }
+        String merchantIDQuery = merchantIDQueryBuilder.toString();
 
         System.out.println(merchantIDQuery);
-        ObjectMapper mapper = new ObjectMapper();
 
         //Initial Response filtered by nearby merchants only.
         RetrieveOffersByFiltergetResponse response = api.getretrieveOffersByFilter( null,  null,  null,  null,  null,  merchantIDQuery,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null);
 
         //Storing offerID list of nearby offers
-        ArrayList<Integer> offerIdList = new ArrayList<Integer>();
+        ArrayList<Integer> offerIdList = new ArrayList<>();
 
-        HashMap<Integer,ArrayList<String>> mapToDesc = new HashMap<Integer,ArrayList<String>>();
+        HashMap<Integer,ArrayList<String>> mapToDesc = new HashMap<>();
 
         int numOffers = response.getTotalFoundResults();
         System.out.println(numOffers);
@@ -94,7 +91,7 @@ public class OffersDataApiCall {
             String validityFrom = response.getOffers().get(i).getValidityFromDate();
             String validityTo = response.getOffers().get(i).getValidityToDate();
 
-            ArrayList<String> offerDetails = new ArrayList<String>();
+            ArrayList<String> offerDetails = new ArrayList<>();
             offerDetails.add(title);
             offerDetails.add(desc);
             offerDetails.add(validityFrom);
@@ -106,44 +103,42 @@ public class OffersDataApiCall {
 
         //Passing this offer id list for next call, to get list of all merchants, near and far, and their counts
 
-        String offerQuery = "";
+        StringBuilder offerQuery = new StringBuilder();
         for(int i = 0; i < offerIdList.size(); i++)
         {
             if(i == offerIdList.size() - 1)
-                offerQuery += "" + offerIdList.get(i);
+                offerQuery.append(offerIdList.get(i));
             else
-                offerQuery += "" + offerIdList.get(i) + ",";
+                offerQuery.append(offerIdList.get(i)).append(",");
         }
         //System.out.println(offerQuery);
         //For getting counts involving all merchants
-        RetrieveOffersByOfferIdgetResponse offerBasedResponse = api.getretrieveOffersByOfferId(offerQuery,  null,  null,  null,  null);
+        RetrieveOffersByOfferIdgetResponse offerBasedResponse = api.getretrieveOffersByOfferId(offerQuery.toString(),  null,  null,  null,  null);
 
         /*
         * The default vmorc results have only 1 merchant enrolled per offer
         * Our algorithm relies on this enrolled merchant count in each offer
         * So, we add some extra merchants to the existing offers returned by querying vmorc
          */
-        HashMap<Integer,ArrayList<String>> additionalMerchants = new HashMap<Integer,ArrayList<String>>();
-        additionalMerchants = populate(offerIdList,numOffers);
+        HashMap<Integer,ArrayList<String>> additionalMerchants = populate(offerIdList,numOffers);
 
-        HashMap<Integer, ArrayList<Integer>> merchantCounts = new HashMap<Integer, ArrayList<Integer>>();
-        merchantCounts = getMerchantCount(offerBasedResponse,offerIdList,PostalCodesMerchantIDs,additionalMerchants,searchPCode,searchCity,numOffers);
+        HashMap<Integer, ArrayList<Integer>> merchantCounts = getMerchantCount(offerBasedResponse,offerIdList,PostalCodesMerchantIDs,additionalMerchants,searchPCode,searchCity,numOffers);
 
-        ArrayList<Double> ScorePoints = calculateScorePoints(MerchantPercentages,merchantCounts,offerIdList);
-        ArrayList<Integer> sortedOfferIdList = calculateOfferPoints(MerchantPercentages,merchantCounts,offerIdList,ScorePoints);
+        ArrayList<Double> scorePoints = calculateScorePoints(MerchantPercentages,merchantCounts,offerIdList);
+        ArrayList<Integer> sortedOfferIdList = calculateOfferPoints(offerIdList,scorePoints);
 
         double sum=0;
-        for(int i=0;i < ScorePoints.size();i++){
-            sum += ScorePoints.get(i);
+        for (Double scorePoint : scorePoints) {
+            sum += scorePoint;
         }
-        for(int i=0;i<ScorePoints.size();i++){ //normalized
-            ScorePoints.set(i,ScorePoints.get(i)/sum);
+        for(int i=0;i<scorePoints.size();i++){ //normalized
+            scorePoints.set(i,scorePoints.get(i)/sum);
         }
 
         //Get best offer parameters
-        String bestPromotionChannel = getBestPromotionChannel(response,numOffers,ScorePoints);
-        String bestCardProduct = getBestCardProduct(response,numOffers,ScorePoints);
-        String bestOfferType = getBestOfferType(response,numOffers,ScorePoints);
+        String bestPromotionChannel = getBestPromotionChannel(response,numOffers,scorePoints);
+        String bestCardProduct = getBestCardProduct(response,numOffers,scorePoints);
+        String bestOfferType = getBestOfferType(response,numOffers,scorePoints);
 
         OfferSuggestorResponse new_res = new OfferSuggestorResponse();
         new_res.setBestPromotionChannel(bestPromotionChannel);
@@ -151,7 +146,7 @@ public class OffersDataApiCall {
         new_res.setBestOfferType(bestOfferType);
 
         //Return top 3 offer details
-        List<OfferItem> oList = new ArrayList<OfferItem>();
+        List<OfferItem> oList = new ArrayList<>();
         for(int i = 0; i < sortedOfferIdList.size(); i++){
             ArrayList<String> responseOfferDetails = mapToDesc.get(sortedOfferIdList.get(i));
             OfferItem offerItem = new OfferItem();
@@ -167,11 +162,10 @@ public class OffersDataApiCall {
         }
 
         new_res.setOfferList(oList);
-        String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(new_res);
-        return json;
+        return new_res;
     }
 
-    public ArrayList<Integer> calculateOfferPoints(ArrayList<Double> MerchantPercentages, HashMap<Integer, ArrayList<Integer>> merchantCounts, ArrayList<Integer> offerIdList, ArrayList<Double> ScorePoints){
+    public ArrayList<Integer> calculateOfferPoints(ArrayList<Integer> offerIdList, ArrayList<Double> scorePoints){
         /*
         * Assigned Priority Points for our algorithm
         * Priority for:
@@ -180,14 +174,14 @@ public class OffersDataApiCall {
         * Same City - 0.5
         * Same Country - 0.2
         */
-        HashMap<Integer,Double> H = new HashMap<Integer, Double>();
+        HashMap<Integer,Double> H = new HashMap<>();
         for(int i = 0; i < offerIdList.size();i++){
-            H.put(offerIdList.get(i),ScorePoints.get(i));
+            H.put(offerIdList.get(i),scorePoints.get(i));
         }
 
         H = sortByValue(H);
         System.out.println(H);
-        ArrayList<Integer> sortedOfferIdList = new ArrayList<Integer>();
+        ArrayList<Integer> sortedOfferIdList = new ArrayList<>();
         for (Map.Entry<Integer,Double> entry : H.entrySet()){
             sortedOfferIdList.add(entry.getKey());
         }
@@ -195,7 +189,7 @@ public class OffersDataApiCall {
     }
 
     public ArrayList<Double> calculateScorePoints(ArrayList<Double> MerchantPercentages, HashMap<Integer, ArrayList<Integer>> merchantCounts, ArrayList<Integer> offerIdList){
-        ArrayList<Double> ScorePoints = new ArrayList<Double>();
+        ArrayList<Double> ScorePoints = new ArrayList<>();
         /*
          * Assigned Priority Points for our algorithm
          * Priority for:
@@ -217,7 +211,7 @@ public class OffersDataApiCall {
     }
 
     public HashMap<Integer, ArrayList<Integer>> getMerchantCount(RetrieveOffersByOfferIdgetResponse response, ArrayList<Integer> offerIdList, ArrayList<ArrayList<String>> PostalCodesMerchantIDs, HashMap<Integer,ArrayList<String>> additionalMerchants, String postalCode, String city, int numOffers) throws IOException{
-        HashMap<String,String> dataList = new HashMap<String,String>();
+        HashMap<String,String> dataList = new HashMap<>();
         for(int i = 0; i < PostalCodesMerchantIDs.get(0).size();i++){
             String mID = PostalCodesMerchantIDs.get(1).get(i);
             String pCode = PostalCodesMerchantIDs.get(0).get(i);
@@ -226,48 +220,44 @@ public class OffersDataApiCall {
                 dataList.put(mID,pCode);
         }
         //System.out.println(response);
-        HashMap<Integer,ArrayList<Integer>> merchantListCount= new HashMap<Integer,ArrayList<Integer>>();
-        HashMap<String,Integer> addMerchData = new HashMap<String,Integer>();
+        HashMap<Integer,ArrayList<Integer>> merchantListCount= new HashMap<>();
+        HashMap<String,Integer> addMerchData = new HashMap<>();
         for(int i = 0; i < numOffers;i++){
             MerchantList mList = response.getOffers().get(i).getMerchantList();
             int key = offerIdList.get(i);
-            ArrayList<Integer> counts = new ArrayList<Integer>();
+            ArrayList<Integer> counts = new ArrayList<>();
             int pCodeCount = 0,pListCount = 0,cityCount = 0,countryCount = mList.size();
-            for(int j = 0;j < mList.size(); j++){
-                String mID = "" + mList.get(j).getMerchantId();
-                if(dataList.containsKey(mID)){
+            for (MerchantListInner merchantListInner : mList) {
+                String mID = "" + merchantListInner.getMerchantId();
+                if (dataList.containsKey(mID)) {
                     String pCode = dataList.get(mID);
-                    if(pCode.equals(postalCode))
+                    if (pCode.equals(postalCode))
                         pCodeCount++;
-                    if(PostalCodesMerchantIDs.get(0).contains(pCode))
+                    if (PostalCodesMerchantIDs.get(0).contains(pCode))
                         pListCount++;
                     cityCount++;
                 }
             }
 
             //Call merchant search for additional merchants
-            ArrayList<String> addList = new ArrayList<String>();
-            addList = additionalMerchants.get(offerIdList.get(i));
-            for(int k = 0; k < addList.size();k++){
-                int result = 0;
-                if(addMerchData.containsKey(addList.get(k)))
-                    result = addMerchData.get(addList.get(k));
-                else{
+            ArrayList<String> addList = additionalMerchants.get(offerIdList.get(i));
+            for (String s : addList) {
+                int result;
+                if (addMerchData.containsKey(s))
+                    result = addMerchData.get(s);
+                else {
                     MerchantSearchCall mCall = new MerchantSearchCall();
-                    result = mCall.checkCity(addList.get(k),city,postalCode,PostalCodesMerchantIDs.get(0));
-                    addMerchData.put(addList.get(k),result);
+                    result = mCall.checkCity(s, city, postalCode, PostalCodesMerchantIDs.get(0));
+                    addMerchData.put(s, result);
                 }
-                if(result == 1)
-                {
+                if (result == 1) {
                     pCodeCount++;
                     pListCount++;
                     cityCount++;
-                }
-                else if(result == 2){
+                } else if (result == 2) {
                     pListCount++;
                     cityCount++;
-                }
-                else if(result == 3){
+                } else if (result == 3) {
                     cityCount++;
                 }
                 countryCount++;
@@ -283,47 +273,42 @@ public class OffersDataApiCall {
         System.out.println(merchantListCount);
         return merchantListCount;
     }
-    public String getBestPromotionChannel(RetrieveOffersByFiltergetResponse response,int numOffers,ArrayList<Double> ScorePoints) throws IOException{
-        HashMap<String,Double> promotionChannelCount= new HashMap<String,Double>();
-        HashMap<String, Integer> promotionChannelCount1= new HashMap<String, Integer>();
+    public String getBestPromotionChannel(RetrieveOffersByFiltergetResponse response,int numOffers,ArrayList<Double> ScorePoints) {
+        HashMap<String,Double> promotionChannelCount= new HashMap<>();
+        HashMap<String, Integer> promotionChannelCount1= new HashMap<>();
         ArrayList<String> Flag = new ArrayList<>();
-        double max_value = 0 , value =0;
-        int max_count = 0,count = 0,sum=0;
+        double max_value = 0 , value;
+        int count,sum=0;
         String best_key = "";
         for(int i = 0; i < numOffers;i++){
             PromotionChannelList pList = response.getOffers().get(i).getPromotionChannelList();
             sum = sum + pList.size();
-            for(int j = 0; j < pList.size();j++){
-                String key = pList.get(j).getValue();
-                if(!Flag.contains(key)) Flag.add(key);
-                if(promotionChannelCount.containsKey(key)){
+            for (SubcategoriesInner subcategoriesInner : pList) {
+                String key = subcategoriesInner.getValue();
+                if (!Flag.contains(key)) Flag.add(key);
+                if (promotionChannelCount.containsKey(key)) {
                     count = promotionChannelCount1.get(key);
                     value = promotionChannelCount.get(key);
-                    promotionChannelCount.put(key,value + ScorePoints.get(i)*0.6);
-                    promotionChannelCount1.put(key,count+1);
-                    if(promotionChannelCount.get(key) > max_value)
-                    {
+                    promotionChannelCount.put(key, value + ScorePoints.get(i) * 0.6);
+                    promotionChannelCount1.put(key, count + 1);
+                    if (promotionChannelCount.get(key) > max_value) {
                         max_value = promotionChannelCount.get(key);
                         best_key = key;
                     }
-                }
-                else {
-                    promotionChannelCount.put(key, ScorePoints.get(i)*0.6);
-                    promotionChannelCount1.put(key,1);
-                    if(max_value == 0)
-                    {
-                        max_value = ScorePoints.get(i)*0.6;
+                } else {
+                    promotionChannelCount.put(key, ScorePoints.get(i) * 0.6);
+                    promotionChannelCount1.put(key, 1);
+                    if (max_value == 0) {
+                        max_value = ScorePoints.get(i) * 0.6;
                         best_key = key;
                     }
                 }
             }
         }
-        for(int i=0;i<Flag.size();i++){
-            String key = Flag.get(i);
+        for (String key : Flag) {
             value = promotionChannelCount.get(key);
-            promotionChannelCount.put(key,value + ((promotionChannelCount1.get(key)*0.4)/sum));
-            if(promotionChannelCount.get(key) > max_value)
-            {
+            promotionChannelCount.put(key, value + ((promotionChannelCount1.get(key) * 0.4) / sum));
+            if (promotionChannelCount.get(key) > max_value) {
                 max_value = promotionChannelCount.get(key);
                 best_key = key;
             }
@@ -333,47 +318,42 @@ public class OffersDataApiCall {
         return best_key;
     }
 
-    public String getBestCardProduct(RetrieveOffersByFiltergetResponse response,int numOffers,ArrayList<Double> ScorePoints) throws IOException{
-        HashMap<String,Double> cardProductCount= new HashMap<String,Double>();
+    public String getBestCardProduct(RetrieveOffersByFiltergetResponse response,int numOffers,ArrayList<Double> ScorePoints) {
+        HashMap<String,Double> cardProductCount= new HashMap<>();
         HashMap<String,Integer> cardProductCount1 = new HashMap<>();
         ArrayList<String> Flag = new ArrayList<>();
-        double max_value =0 , value =0 ;
-        int max_count = 0,count = 0,sum = 0;
+        double max_value =0 , value;
+        int count,sum = 0;
         String best_key = "";
         for(int i = 0; i < numOffers;i++){
             CardProductList cList = response.getOffers().get(i).getCardProductList();
             sum = sum + cList.size();
-            for(int j = 0; j < cList.size();j++){
-                String key = cList.get(j).getValue();
-                if(!Flag.contains(key)) Flag.add(key);
-                if(cardProductCount.containsKey(key)){
+            for (SubcategoriesInner subcategoriesInner : cList) {
+                String key = subcategoriesInner.getValue();
+                if (!Flag.contains(key)) Flag.add(key);
+                if (cardProductCount.containsKey(key)) {
                     value = cardProductCount.get(key);
                     count = cardProductCount1.get(key);
-                    cardProductCount.put(key,value + ScorePoints.get(i)*0.6);
-                    cardProductCount1.put(key,count + 1);
-                    if(cardProductCount.get(key) > max_value)
-                    {
+                    cardProductCount.put(key, value + ScorePoints.get(i) * 0.6);
+                    cardProductCount1.put(key, count + 1);
+                    if (cardProductCount.get(key) > max_value) {
                         max_value = cardProductCount.get(key);
                         best_key = key;
                     }
-                }
-                else {
-                    cardProductCount.put(key, ScorePoints.get(i)*0.6);
-                    cardProductCount1.put(key,1);
-                    if(max_value == 0)
-                    {
-                        max_value = ScorePoints.get(i)*0.6 ;
+                } else {
+                    cardProductCount.put(key, ScorePoints.get(i) * 0.6);
+                    cardProductCount1.put(key, 1);
+                    if (max_value == 0) {
+                        max_value = ScorePoints.get(i) * 0.6;
                         best_key = key;
                     }
                 }
             }
         }
-        for(int i=0;i<Flag.size();i++){
-            String key = Flag.get(i);
+        for (String key : Flag) {
             value = cardProductCount.get(key);
-            cardProductCount.put(key,value + (cardProductCount1.get(key)/sum)*0.4);
-            if(cardProductCount.get(key) > max_value)
-            {
+            cardProductCount.put(key, value + (cardProductCount1.get(key) / sum) * 0.4);
+            if (cardProductCount.get(key) > max_value) {
                 max_value = cardProductCount.get(key);
                 best_key = key;
             }
@@ -382,47 +362,42 @@ public class OffersDataApiCall {
         return best_key;
     }
 
-    public String getBestOfferType(RetrieveOffersByFiltergetResponse response, int numOffers, ArrayList<Double> ScorePoints) throws IOException{
-        HashMap<String,Double> offerTypeCount= new HashMap<String,Double>();
+    public String getBestOfferType(RetrieveOffersByFiltergetResponse response, int numOffers, ArrayList<Double> ScorePoints) {
+        HashMap<String,Double> offerTypeCount= new HashMap<>();
         HashMap<String,Integer> offerTypeCount1 = new HashMap<>();
         ArrayList<String> Flag = new ArrayList<>();
-        double max_value = 0 , value =0 ;
-        int max_count = 0,count = 0, sum =0;
+        double max_value = 0 , value;
+        int count, sum =0;
         String best_key = "";
         for(int i = 0; i < numOffers;i++){
             OfferType oList= response.getOffers().get(i).getOfferType();
             sum = sum + oList.size();
-            for(int j = 0; j < oList.size();j++){
-                String key = oList.get(j).getValue();
-                if(!Flag.contains(key)) Flag.add(key);
-                if(offerTypeCount.containsKey(key)){
+            for (SubcategoriesInner subcategoriesInner : oList) {
+                String key = subcategoriesInner.getValue();
+                if (!Flag.contains(key)) Flag.add(key);
+                if (offerTypeCount.containsKey(key)) {
                     count = offerTypeCount1.get(key);
                     value = offerTypeCount.get(key);
-                    offerTypeCount.put(key,value + ScorePoints.get(i)*0.6);
-                    offerTypeCount1.put(key,count+1);
-                    if(offerTypeCount.get(key) > max_value)
-                    {
+                    offerTypeCount.put(key, value + ScorePoints.get(i) * 0.6);
+                    offerTypeCount1.put(key, count + 1);
+                    if (offerTypeCount.get(key) > max_value) {
                         max_value = offerTypeCount.get(key);
                         best_key = key;
                     }
-                }
-                else {
-                    offerTypeCount.put(key, ScorePoints.get(i)*0.6);
-                    offerTypeCount1.put(key,1);
-                    if(max_value == 0)
-                    {
-                        max_value = ScorePoints.get(i)*0.6;
+                } else {
+                    offerTypeCount.put(key, ScorePoints.get(i) * 0.6);
+                    offerTypeCount1.put(key, 1);
+                    if (max_value == 0) {
+                        max_value = ScorePoints.get(i) * 0.6;
                         best_key = key;
                     }
                 }
             }
         }
-        for(int i=0;i<Flag.size();i++){
-            String key = Flag.get(i);
+        for (String key : Flag) {
             value = offerTypeCount.get(key);
-            offerTypeCount.put(key,value + (offerTypeCount1.get(key)/sum)*0.4);
-            if(offerTypeCount.get(key) > max_value)
-            {
+            offerTypeCount.put(key, value + (offerTypeCount1.get(key) / sum) * 0.4);
+            if (offerTypeCount.get(key) > max_value) {
                 max_value = offerTypeCount.get(key);
                 best_key = key;
             }
@@ -432,8 +407,8 @@ public class OffersDataApiCall {
     }
 
     HashMap<Integer,ArrayList<String>>  populate(ArrayList<Integer> offerIDList,int numOffers){
-        HashMap<Integer,ArrayList<String>> additionalMerchants = new HashMap<Integer,ArrayList<String>>();
-        ArrayList<String> newMerchants = new ArrayList<String>();
+        HashMap<Integer,ArrayList<String>> additionalMerchants = new HashMap<>();
+        ArrayList<String> newMerchants = new ArrayList<>();
         newMerchants.add("28495735");
         newMerchants.add("26410561");
         newMerchants.add("11455106");
@@ -441,14 +416,14 @@ public class OffersDataApiCall {
         newMerchants.add("32732413");
         newMerchants.add("16919626");
 
-        ArrayList<ArrayList<String>> mList = new ArrayList<ArrayList<String>>();
+        ArrayList<ArrayList<String>> mList = new ArrayList<>();
 
         for(int k = 0; k < numOffers;k++){
             Random rand = new Random();
             int num = rand.nextInt(newMerchants.size());
             if(num == 0)
                 num = 2;
-            ArrayList<String> M = new ArrayList<String>();
+            ArrayList<String> M = new ArrayList<>();
             for(int i = 0; i < num; i++){
                 int num2 = rand.nextInt(newMerchants.size());
                 if(num2 == newMerchants.size())
@@ -470,7 +445,7 @@ public class OffersDataApiCall {
     {
         // Create a list from elements of HashMap
         List<Map.Entry<Integer, Double> > list =
-                new LinkedList<Map.Entry<Integer, Double> >(hm.entrySet());
+                new LinkedList<>(hm.entrySet());
 
         // Sort the list
         Collections.sort(list, new Comparator<Map.Entry<Integer, Double> >() {
@@ -482,7 +457,7 @@ public class OffersDataApiCall {
         });
 
         // put data from sorted list to hashmap
-        HashMap<Integer, Double> temp = new LinkedHashMap<Integer, Double>();
+        HashMap<Integer, Double> temp = new LinkedHashMap<>();
         for (Map.Entry<Integer, Double> aa : list) {
             temp.put(aa.getKey(), aa.getValue());
         }
@@ -496,6 +471,7 @@ public class OffersDataApiCall {
      *
      *          if the Api call fails
      */
+    /*
     public String getRetrieveOffersByContentIdHandler() throws IOException {
         String contentid = Arrays.asList("contentid_example").get(0);
         ObjectMapper mapper = new ObjectMapper();
@@ -503,34 +479,20 @@ public class OffersDataApiCall {
         String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
         return json;
     }
-
-    /**
-     *
-     *
-     * Request for offers by filter
-     *
-     *          if the Api call fails
-     */
-    public ArrayList<Integer> getRetrieveOffersByFilterHandler(String business_segment,String card_payment,String card_product,String promotional_channel) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        ArrayList<Integer> offer_ids = new ArrayList<Integer>();
-        RetrieveOffersByFiltergetResponse response = api.getretrieveOffersByFilter( business_segment,card_payment, card_product,  null,  null,  null,  null,  promotional_channel,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null);
+    */
+    public ArrayList<Integer> getRetrieveOffersByFilterHandler(OfferFilterDTO offerFilterDTO) {
+        ArrayList<Integer> offer_ids = new ArrayList<>();
+        RetrieveOffersByFiltergetResponse response = api.getretrieveOffersByFilter( offerFilterDTO.getBusinessSegment(),offerFilterDTO.getCardPayment(), offerFilterDTO.getCardProduct(),  null,  null,  null,  null,  offerFilterDTO.getPromotionalChannel(),  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null);
         System.out.println(response);
-        int numoffers=response.getReturnedResults();
-        for(int i=0;i<numoffers;i++) {
+        int numOffers=response.getReturnedResults();
+        for(int i=0;i<numOffers;i++) {
             int offerId = response.getOffers().get(i).getOfferId();
             offer_ids.add(offerId);
         }
         return offer_ids;
     }
 
-    /**
-     *
-     *
-     * Request for offers by an offer id
-     *
-     *          if the Api call fails
-     */
+    /*
     public void getretrieveOffersByOfferIdTest() throws IOException {
         String offerid = Arrays.asList("102355").get(0);
 
@@ -539,4 +501,5 @@ public class OffersDataApiCall {
         String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
         System.out.println(json);
     }
+    */
 }
