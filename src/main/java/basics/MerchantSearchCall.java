@@ -5,10 +5,12 @@ import com.visa.developer.sample.merchant_search_api.ApiClient;
 import com.visa.developer.sample.merchant_search_api.api.MerchantSearchApi;
 import com.visa.developer.sample.merchant_search_api.model.MerchantSearchpostPayload;
 import com.visa.developer.sample.merchant_search_api.model.ModelResponse;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
+@Service
 public class MerchantSearchCall {
     private final MerchantSearchApi api;
 
