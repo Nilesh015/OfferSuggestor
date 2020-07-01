@@ -56,11 +56,11 @@ public class MerchantSearchApiTest {
         System.out.println("\nProduct Name: Merchant Search\nApi Name: Merchant Search API");
         ApiClient apiClient = new ApiClient();
         // Configure HTTP basic authorization: basicAuth
-        apiClient.setUsername("YOUR USERNAME");
-        apiClient.setPassword("YOUR PASSWORD");
-        apiClient.setKeystorePath("YOUR KEYSTORE PATH");
-        apiClient.setKeystorePassword("YOUR KEYSTORE PASSWORD");
-        apiClient.setPrivateKeyPassword("YOUR PRIVATEKEY PASSWORD");
+        apiClient.setUsername("LLT3CK0NZYQT1M9DIOBJ21o-cByoaU-GqBdx2aQm_RFXrBNj0");
+        apiClient.setPassword("o2iEIyXC6op8tB7B");
+        apiClient.setKeystorePath("/home/nilesh015/Desktop/VDP/security/myProject_keyAndCertBundle.jks");
+        apiClient.setKeystorePassword("password");
+        apiClient.setPrivateKeyPassword("password");
 
 
         // To set proxy uncomment the below lines
@@ -80,7 +80,7 @@ public class MerchantSearchApiTest {
     @Test
     public void postmerchantSearchTest() throws IOException {
         
-        String jsonPayload = "{\"searchAttrList\":{\"visaStoreId\":\"165833808\"},\"responseAttrList\":[\"GNSTANDARD\"],\"searchOptions\":{\"wildCard\":[\"merchantName\"],\"maxRecords\":\"5\",\"matchIndicators\":\"true\",\"matchScore\":\"true\",\"proximity\":[\"merchantName\"]},\"header\":{\"requestMessageId\":\"Request_001\",\"startIndex\":\"0\",\"messageDateTime\":\"2020-06-19T17:05:32.903\"}}";
+        String jsonPayload = "{\"searchAttrList\":{\"visaMerchantId\":\"26410561\",\"merchantCity\":\"SAN FRANCISCO\",\"merchantCountryCode\":840},\"responseAttrList\":[\"GNSTANDARD\"],\"searchOptions\":{\"wildCard\":[\"merchantName\"],\"maxRecords\":\"5\",\"matchIndicators\":\"true\",\"matchScore\":\"true\",\"proximity\":[\"merchantName\"]},\"header\":{\"requestMessageId\":\"Request_001\",\"startIndex\":\"0\",\"messageDateTime\":\"2020-06-19T17:05:32.903\"}}";
         ObjectMapper mapper = new ObjectMapper();
         MerchantSearchpostPayload body = mapper.readValue(jsonPayload, MerchantSearchpostPayload.class);
 

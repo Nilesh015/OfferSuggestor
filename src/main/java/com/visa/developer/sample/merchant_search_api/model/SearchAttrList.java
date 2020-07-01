@@ -62,7 +62,7 @@ public class SearchAttrList {
   
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   @JsonProperty("visaMerchantId")
-  private Double visaMerchantId = null;
+  private String visaMerchantId = null;
   
   
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
@@ -176,7 +176,7 @@ public class SearchAttrList {
     this.merchantState = merchantState;
   }
   
-  public SearchAttrList visaMerchantId(Double visaMerchantId) {
+  public SearchAttrList visaMerchantId(String visaMerchantId) {
     this.visaMerchantId = visaMerchantId;
     return this;
   }
@@ -187,10 +187,10 @@ public class SearchAttrList {
   * @return visaMerchantId
   **/
   @ApiModelProperty(required = true, value = "Unique identifier for Merchant provided by VISA. Note: Optional when any one of MerchantName or VisaStoreId or BusinessRegistrationId or MerchantUrl or AcquirerCardAcceptorId is provided.")
-  public Double getVisaMerchantId() {
+  public String getVisaMerchantId() {
     return visaMerchantId;
   }
-  public void setVisaMerchantId(Double visaMerchantId) {
+  public void setVisaMerchantId(String visaMerchantId) {
     this.visaMerchantId = visaMerchantId;
   }
   

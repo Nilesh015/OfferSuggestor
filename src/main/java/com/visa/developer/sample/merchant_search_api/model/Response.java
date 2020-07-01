@@ -79,6 +79,10 @@ public class MatchIndicators
   @JsonProperty("merchantCountryCode")
   private String merchantCountryCode = null;
 
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonProperty("visaMerchantId")
+  private String visaMerchantId = null;
+
   @ApiModelProperty(value = "MatchScore for the record")
   public String getMerchantName() {
     return merchantName;
@@ -119,12 +123,26 @@ public class MatchIndicators
     this.merchantCountryCode = merchantCountryCode;
   }
 
+  @ApiModelProperty(value = "MatchMerchantID for the record")
+
+  public String getVisaMerchantId() {
+    return visaMerchantId;
+  }
+
+  public void setVisaMerchantId(String visaMerchantId) {
+    this.visaMerchantId = visaMerchantId;
+  }
 }
-  
+
+  public MatchIndicators getMatchIndicators() {
+    return matchIndicators;
+  }
+
   /**
   * MatchScore for the record
   * @return matchScore
   **/
+
   @ApiModelProperty(value = "MatchScore for the record")
   public String getMatchScore() {
     return matchScore;

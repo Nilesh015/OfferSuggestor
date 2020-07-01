@@ -3,6 +3,8 @@ package basics;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 public class OfferSuggestorResponse {
     @JsonProperty("bestPromotionChannel")
     @JsonInclude(value = JsonInclude.Include.NON_NULL)
@@ -15,6 +17,18 @@ public class OfferSuggestorResponse {
     @JsonProperty("bestOfferType")
     @JsonInclude(value = JsonInclude.Include.NON_NULL)
     private String bestOfferType = null;
+
+    @JsonProperty("offerList")
+    @JsonInclude(value = JsonInclude.Include.NON_NULL)
+    private List<OfferItem> offerList = null;
+
+    public List<OfferItem> getOfferList() {
+        return offerList;
+    }
+
+    public void setOfferList(List<OfferItem> offerList) {
+        this.offerList = offerList;
+    }
 
     public String getBestPromotionChannel() {
         return bestPromotionChannel;

@@ -18,9 +18,9 @@ public class MerchantLocatorCall {
         System.out.println("\nProduct Name: Merchant Locator\nApi Name: Merchant Locator API");
         ApiClient apiClient = new ApiClient();
         // Configure HTTP basic authorization: basicAuth
-        apiClient.setUsername("NZHWN23TKZXB409MC28821sjIJv04D5KlgsPUjJ6fWlsadQBw");
-        apiClient.setPassword("j0I30I75zt4LnoLDct4Z5IEBBUPi1tSj3Yhh8D");
-        apiClient.setKeystorePath("C:/Visa/Security/myProject_keyAndCertBundle.jks");
+        apiClient.setUsername("LLT3CK0NZYQT1M9DIOBJ21o-cByoaU-GqBdx2aQm_RFXrBNj0");
+        apiClient.setPassword("o2iEIyXC6op8tB7B");
+        apiClient.setKeystorePath("/home/nilesh015/Desktop/VDP/security/myProject_keyAndCertBundle.jks");
         apiClient.setKeystorePassword("password");
         apiClient.setPrivateKeyPassword("password");
 

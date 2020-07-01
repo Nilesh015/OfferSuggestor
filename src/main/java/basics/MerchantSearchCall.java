@@ -16,9 +16,9 @@ public class MerchantSearchCall {
         System.out.println("\nProduct Name: Merchant Search\nApi Name: Merchant Search API");
         ApiClient apiClient = new ApiClient();
         // Configure HTTP basic authorization: basicAuth
-        apiClient.setUsername("NZHWN23TKZXB409MC28821sjIJv04D5KlgsPUjJ6fWlsadQBw");
-        apiClient.setPassword("j0I30I75zt4LnoLDct4Z5IEBBUPi1tSj3Yhh8D");
-        apiClient.setKeystorePath("C:/Visa/Security/myProject_keyAndCertBundle.jks");
+        apiClient.setUsername("LLT3CK0NZYQT1M9DIOBJ21o-cByoaU-GqBdx2aQm_RFXrBNj0");
+        apiClient.setPassword("o2iEIyXC6op8tB7B");
+        apiClient.setKeystorePath("/home/nilesh015/Desktop/VDP/security/myProject_keyAndCertBundle.jks");
         apiClient.setKeystorePassword("password");
         apiClient.setPrivateKeyPassword("password");
 
@@ -55,5 +55,29 @@ public class MerchantSearchCall {
         return attributes;
     }
 
+    public int checkCity(String merchantID,String city,String postalCode,ArrayList<String> pCodeList) throws IOException {
+        String jsonPayload = "{\"searchAttrList\":{\"visaMerchantId\":\""+ Integer.parseInt(merchantID) +"\",\"merchantCity\":\""+ city +"\",\"merchantCountryCode\":840},\"responseAttrList\":[\"GNSTANDARD\"],\"searchOptions\":{\"wildCard\":[\"merchantName\"],\"maxRecords\":\"5\",\"matchIndicators\":\"true\",\"matchScore\":\"true\",\"proximity\":[\"merchantName\"]},\"header\":{\"requestMessageId\":\"Request_001\",\"startIndex\":\"0\",\"messageDateTime\":\"2020-06-19T17:05:32.903\"}}";
+        ObjectMapper mapper = new ObjectMapper();
+        MerchantSearchpostPayload body = mapper.readValue(jsonPayload, MerchantSearchpostPayload.class);
 
+        System.out.println(merchantID + "," + city + "," + postalCode);
+        ModelResponse response = api.postmerchantSearch(body);
+        String pVal = response.getMerchantSearchpostResponse().getResponse().get(0).getResponseValues().getMerchantPostalCode();
+        pVal = pVal.substring(0,pVal.indexOf('-'));
+        String cVal = response.getMerchantSearchpostResponse().getResponse().get(0).getMatchIndicators().getMerchantCity();
+        String mVal = response.getMerchantSearchpostResponse().getResponse().get(0).getMatchIndicators().getVisaMerchantId();
+        System.out.println(mVal + "," + cVal + "," + pVal);
+        if(mVal.equals("N"))//Same Country
+            return 4;
+        //mVal is Y
+        else if(cVal.equals("N"))//Same Country
+            return 4;
+        //cVal is Y
+        else if(!(pCodeList.contains(pVal)))//Same city + country
+            return 3;
+        //pVal in postal code list
+        else if(!pVal.equals(postalCode))//Same pList + city + country
+            return 2;
+        return 1;//Same pCode + pList + city + country
+    }
 }

@@ -58,11 +58,11 @@ public class OffersDataApiApiTest {
         System.out.println("\nProduct Name: Visa Merchant Offers Resource Center\nApi Name: Offers Data API");
         ApiClient apiClient = new ApiClient();
         // Configure HTTP basic authorization: basicAuth
-        apiClient.setUsername("YOUR USERNAME");
-        apiClient.setPassword("YOUR PASSWORD");
-        apiClient.setKeystorePath("YOUR KEYSTORE PATH");
-        apiClient.setKeystorePassword("YOUR KEYSTORE PASSWORD");
-        apiClient.setPrivateKeyPassword("YOUR PRIVATEKEY PASSWORD");
+        apiClient.setUsername("LLT3CK0NZYQT1M9DIOBJ21o-cByoaU-GqBdx2aQm_RFXrBNj0");
+        apiClient.setPassword("o2iEIyXC6op8tB7B");
+        apiClient.setKeystorePath("/home/nilesh015/Desktop/VDP/security/myProject_keyAndCertBundle.jks");
+        apiClient.setKeystorePassword("password");
+        apiClient.setPrivateKeyPassword("password");
 
         // To set proxy uncomment the below lines
         // apiClient.setProxyHostName("proxy.address@example.com");
@@ -135,10 +135,10 @@ public class OffersDataApiApiTest {
     public void getretrieveOffersByOfferIdTest() throws IOException {
 
 
-        String offerid = Arrays.asList("102355").get(0);
+        String offerid = "102355,102357,102358,102359,102358,102606,102608,102361,102609,102605,102607,102356,102613,102614,102615,102616,102617,102618,102619,102620";
 
         ObjectMapper mapper = new ObjectMapper();
-        RetrieveOffersByOfferIdgetResponse response = api.getretrieveOffersByOfferId(offerid,  null,  null,  null,  null);
+        RetrieveOffersByOfferIdgetResponse response = api.getretrieveOffersByOfferId(offerid,  null,  null,  2,  null);
         String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
         System.out.println(json);
     }
