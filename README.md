@@ -1,13 +1,13 @@
 # OfferSuggestor
 The api has following functionalities:  
-Merchant Side:  
+<b>Merchant Side:</b>  
 1) Search nearby Offers  
 2) Get best parameters for nearby offers    
 
-Customer Side:  
+<b>Customer Side:</b>  
 1) Get best nearby offers  
 
-Steps to Run:
+<b>Steps to Run:</b>
 1) Create a new Project in VDP and add the apis: Merchant Search, Merchant Locator, Merchant Measurement, VMORC.  
 2) Create a JAVA keystore (.jks file) as shown in: https://developer.visa.com/pages/working-with-visa-apis/two-way-ssl.   
 3) Clone this repo, and import the folder in IntelliJ IDEA IDE for Java.  
