@@ -72,7 +72,7 @@ public class OfferController {
         ArrayList<Double> MerchantPercentages = getRandomMeasurement();
         int key = 1;
         stopWatch.start("offer_suggestor_response");
-        OfferSuggestorResponse bestOfferParameters = offersDataApiCall.getBestOfferParameters(key, PostalCodesMerchantIDs, MerchantPercentages, postalCode, city);
+        OfferSuggestorResponse bestOfferParameters = offersDataApiCall.getBestOfferParameters(key, PostalCodesMerchantIDs, MerchantPercentages, postalCode, city, mCC);
         stopWatch.stop();
         System.out.println(stopWatch.getLastTaskInfo());
         System.out.println(stopWatch.prettyPrint());
@@ -97,7 +97,7 @@ public class OfferController {
         //ArrayList<Double> MerchantPercentages = callMerchantMeasurement(postalCode,mCC,uniquePostalCodes,city);
         ArrayList<Double> MerchantPercentages = getRandomMeasurement();
         int key = 2;
-        return offersDataApiCall.getBestOfferParameters(key,PostalCodesMerchantIDs,MerchantPercentages,postalCode,city);
+        return offersDataApiCall.getBestOfferParameters(key,PostalCodesMerchantIDs,MerchantPercentages,postalCode,city,mCC);
 
     }
     public ArrayList<ArrayList<String>> getMerchantIDAndPostalCodeList(String postalCode,String mCC) {
@@ -152,9 +152,10 @@ public class OfferController {
          * postal code city and country levels in Sandbox,
          * we assign random percentages for these
          */
-        for(int i=0;i<4;i++){
-            Percentages.add(-30.0 + (60.0)*rand.nextDouble());
-        }
+        Percentages.add(-0.6);
+        Percentages.add(-0.6);
+        Percentages.add(-0.3);
+        Percentages.add(-0.1);
         return Percentages;
     }
 

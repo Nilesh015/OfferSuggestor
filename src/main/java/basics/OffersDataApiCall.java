@@ -15,15 +15,7 @@ public class OffersDataApiCall {
     private final OffersDataApiApi api;
 
     private static final ConcurrentHashMap<String, Integer> merchantCache = new ConcurrentHashMap<>();
-    private static final HashMap<Integer,Integer> ID = new HashMap<>();
 
-    static {
-        ID.put(80310667, 101456);
-        ID.put(29992901, 101457);
-        ID.put(25837910, 101458);
-        ID.put(14220138, 101459);
-        ID.put(14786696, 101460);
-    }
 
     public OffersDataApiCall(){
         //System.out.println("\nProduct Name: Visa Merchant Offers Resource Center\nApi Name: Offers Data API");
@@ -49,12 +41,25 @@ public class OffersDataApiCall {
      *
      *          if the Api call fails
      */
-    public OfferSuggestorResponse getBestOfferParameters(int keyVal, ArrayList<ArrayList<String>> PostalCodesMerchantIDs, ArrayList<Double> MerchantPercentages, String searchPCode, String searchCity) throws IOException {
+    public OfferSuggestorResponse getBestOfferParameters(int keyVal, ArrayList<ArrayList<String>> PostalCodesMerchantIDs, ArrayList<Double> MerchantPercentages, String searchPCode, String searchCity, String mCC) throws IOException {
         /*
         * Since we have dummy offers with dummy merchant ids,
         * we map each dummy merchant to a real merchant id obtained from Merchant Locator
         */
+        HashMap<Integer,Integer> ID = new HashMap<>();
 
+        if(mCC.equals("5814")){
+            ID.put(80310667, 101456);
+            ID.put(29992901, 101457);
+            ID.put(25837910, 101458);
+            ID.put(14220138, 101459);
+            ID.put(14786696, 101460);
+        }
+
+        else{
+            ID.put(31929117, 101456);
+            ID.put(31340543, 101460);
+        }
         for(int i = 0; i < (PostalCodesMerchantIDs.get(0)).size();i++){
             int key = Integer.parseInt(PostalCodesMerchantIDs.get(1).get(i));
             //System.out.println(key);
@@ -243,7 +248,7 @@ public class OffersDataApiCall {
                     cityCount++;
                 }
             }
-
+            /*
             //Call merchant search for additional merchants
             ArrayList<String> addList = additionalMerchants.get(offerIdList.get(i));
             for (String s : addList) {
@@ -271,7 +276,7 @@ public class OffersDataApiCall {
                 }
                 countryCount++;
             }
-
+            */
             counts.add(pCodeCount);
             counts.add(pListCount);
             counts.add(cityCount);
@@ -323,7 +328,7 @@ public class OffersDataApiCall {
             }
         }
 
-       // System.out.println(promotionChannelCount);
+        System.out.println(promotionChannelCount);
         return best_key;
     }
 
@@ -367,7 +372,7 @@ public class OffersDataApiCall {
                 best_key = key;
             }
         }
-       // System.out.println(cardProductCount);
+        System.out.println(cardProductCount);
         return best_key;
     }
 
@@ -411,7 +416,7 @@ public class OffersDataApiCall {
                 best_key = key;
             }
         }
-       // System.out.println(offerTypeCount);
+        System.out.println(offerTypeCount);
         return best_key;
     }
 
