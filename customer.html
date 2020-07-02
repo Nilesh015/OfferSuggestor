@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+        <title>Offers</title>
+
+        <style>
+            @media (min-width: 768px) {
+                .h-md-100 { height: 100vh; }
+            }
+            .btn-round { border-radius: 30px; }
+            .bg-indigo { background: #5a07c5; }
+            .text-cyan { color: #144deb; }
+
+            .caption div {
+                box-shadow: 0 0 5px #C8C8C8;
+                transition: all 0.3s ease 0s;
+            }
+            .img-circle {
+                border-radius: 50%;
+            }
+            .img-circle {
+                border-radius: 0;
+            }
+
+            .ratio {
+                background-position: center center;
+                background-repeat: no-repeat;
+                background-size: cover;
+
+                height: 0;
+                padding-bottom: 100%;
+                position: relative;
+                width: 100%;
+            }
+            .img-circle {
+                border-radius: 50%;
+            }
+            .img-responsive {
+                display: block;
+                height: auto;
+                max-width: 100%;
+            }
+
+            body{
+                background: #eee;
+            }
+            span{
+                font-size:15px;
+            }
+            a{
+            text-decoration:none; 
+            }
+            .box{
+                padding:60px 0px;
+            }
+
+            .box-part{
+                background:#FFF;
+                border-radius:0;
+                padding:15px 10px;
+                margin:30px 0px;
+                font-size: large;
+            }
+
+            .fa{
+                color:#4183D7;
+            }
+
+            .logoutLblPos{
+
+                position:fixed;
+                right:10px;
+                top:5px;
+                text-decoration: none;
+            }
+
+            .logoutLblPos:hover {
+                color: black;
+                text-decoration: none;
+            }
+
+            .searchBtn{
+
+                position:fixed;
+                right:80px;
+                top:5px;
+                text-decoration: none;
+            }
+
+            .searchBtn:hover {
+                color: black;
+                text-decoration: none;
+            }
+
+            .overlay {
+                height: 100%;
+                width: 100%;
+                position: fixed; /* Stay in place */
+                z-index: 1; /* Sit on top */
+                left: 0;
+                top: 0;
+                background-color: rgb(0,0,0); /* Black fallback color */
+                background-color: rgba(0,0,0, 0.9); /* Black w/opacity */
+                overflow-x: hidden;
+                text-align: center;
+                margin: auto;
+            }
+            /*the container must be positioned relative:*/
+            .custom-select {
+              position: relative;
+              font-family: Arial;
+            }
+
+            .custom-select select {
+              display: none; /*hide original SELECT element:*/
+            }
+
+            /*style the arrow inside the select element:*/
+            .select-selected:after {
+              position: absolute;
+              content: "";
+              top: 14px;
+              right: 10px;
+              width: 0;
+              height: 0;
+              border: 6px solid transparent;
+              border-color: #fff transparent transparent transparent;
+            }
+
+            /*point the arrow upwards when the select box is open (active):*/
+            .select-selected.select-arrow-active:after {
+              border-color: transparent transparent #fff transparent;
+              top: 7px;
+            }
+
+            /*style the items (options), including the selected item:*/
+            .select-items div,.select-selected {
+              color: #ffffff;
+              padding: 8px 16px;
+              border: 1px solid transparent;
+              border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+              cursor: pointer;
+              user-select: none;
+            }
+
+            /*hide the items when the select box is closed:*/
+            .select-hide {
+              display: none;
+            }
+
+            .select-items div:hover, .same-as-selected {
+              background-color: rgba(0, 0, 0, 0.1);
+            }
+        </style>
+    </head>
+    <body>
+        <!-- <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script> -->
+        <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> -->
+        
+        
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+        
+
+        <div class="d-md-flex h-md-100 align-items-center">
+
+            <div class="overlay" id="olay">
+                <div style="margin-top: 20%;">
+                    <h2 style="color: #FFF;"> Search for best nearby offers.</h2>
+                    <input id="postalCode" type="text" placeholder="Enter Postal code" required> <br><br>
+                    <div style = "margin-float: left">
+                      <select>
+                        <option value="0">Select Category:</option>
+                        <option id = "categoryCode" value="5814">Fast Food</option>
+                        <option value="2">Commercial Footwear</option>
+                        <option value="3">Book Stores</option>
+                      </select>
+                    </div> <br>
+                    <button id="sBtn" class="btn-success" onclick="myfunc()">Search</button>
+                </div>
+            </div>
+            <!-- First Half -->
+
+            
+            <div class="col-md-4 p-0 bg-indigo h-md-100">
+                <div class="row" style="padding-top: 6em;">
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-6">
+                        <div  class="ratio img-responsive img-circle" style="background-image: url(http://lokagraph.com/wp-content/uploads/2018/05/the-office-dunder-Mifflin-building-warehouse.jpg);"></div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <!-- <div class="text-white d-md-flex align-items-center h-100 p-5 text-center justify-content-center">
+                    <div class="logoarea pt-5 pb-5">
+                        First half content here
+                    </div>
+                </div> -->
+                <div style="padding: auto;">
+                    <div class="row" style="padding-top: 5em;">
+                        <div class="col-sm-2"></div>
+                        <div class="col-sm-8 p-0 bg-white" style="height: 200px;">
+                            <div class="box-part text-center">
+                                <div id="t1" class="text" style="padding-left: 15px;text-align: left !important">
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Second Half -->
+            
+            <div class="col-md-8 p-0 bg-white h-md-100 loginarea">
+                <!-- <div class="align-items-center p-5 justify-content-center text-center">
+                    <h1>Best Offers </h1>
+                    <h6>Following are the offers best suited for you</h6>
+                </div> -->
+
+                <div class="container">
+                    <div id="jumb" class="jumbotron text-center" style="margin-top: 1rem; background-color: #FFF; margin-bottom: 0rem; padding-bottom: 2rem;">
+                        <a href="#" class="searchBtn" style="color: black; text-decoration: none !important;" onclick="myfunc2()">Search</a>
+                        <a href="#" class="logoutLblPos" style="color: black; text-decoration: none !important;">Log Out</a>
+                        <h1 style="color: rgb(77,77,77) !important">Best Offers</h1>
+                        <p style="color: rgb(77,77,77) !important">Offers found for you.</p>
+                        <br>
+                        <h5 id="remT">We are searching the best offers for you. Just wait!</h5>
+                    </div>
+                </div>
+                <div class="container" style="height: 400px; padding-left: 100px; padding-right: 100px;">
+                    <div class="table-responsive">
+                        <table id="offerTable" class="table table-striped">
+                        </table>
+                    </div>
+                </div>
+                
+            </div>
+                
+        </div>
+        <script>
+        var x, i, j, l, ll, selElmnt, a, b, c;
+        /*look for any elements with the class "custom-select":*/
+        x = document.getElementsByClassName("custom-select");
+        l = x.length;
+        for (i = 0; i < l; i++) {
+          selElmnt = x[i].getElementsByTagName("select")[0];
+          ll = selElmnt.length;
+          /*for each element, create a new DIV that will act as the selected item:*/
+          a = document.createElement("DIV");
+          a.setAttribute("class", "select-selected");
+          a.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML;
+          x[i].appendChild(a);
+          /*for each element, create a new DIV that will contain the option list:*/
+          b = document.createElement("DIV");
+          b.setAttribute("class", "select-items select-hide");
+          for (j = 1; j < ll; j++) {
+            /*for each option in the original select element,
+            create a new DIV that will act as an option item:*/
+            c = document.createElement("DIV");
+            c.innerHTML = selElmnt.options[j].innerHTML;
+            c.addEventListener("click", function(e) {
+                /*when an item is clicked, update the original select box,
+                and the selected item:*/
+                var y, i, k, s, h, sl, yl;
+                s = this.parentNode.parentNode.getElementsByTagName("select")[0];
+                sl = s.length;
+                h = this.parentNode.previousSibling;
+                for (i = 0; i < sl; i++) {
+                  if (s.options[i].innerHTML == this.innerHTML) {
+                    s.selectedIndex = i;
+                    h.innerHTML = this.innerHTML;
+                    y = this.parentNode.getElementsByClassName("same-as-selected");
+                    yl = y.length;
+                    for (k = 0; k < yl; k++) {
+                      y[k].removeAttribute("class");
+                    }
+                    this.setAttribute("class", "same-as-selected");
+                    break;
+                  }
+                }
+                h.click();
+            });
+            b.appendChild(c);
+          }
+          x[i].appendChild(b);
+          a.addEventListener("click", function(e) {
+              /*when the select box is clicked, close any other select boxes,
+              and open/close the current select box:*/
+              e.stopPropagation();
+              closeAllSelect(this);
+              this.nextSibling.classList.toggle("select-hide");
+              this.classList.toggle("select-arrow-active");
+            });
+        }
+        function closeAllSelect(elmnt) {
+          /*a function that will close all select boxes in the document,
+          except the current select box:*/
+          var x, y, i, xl, yl, arrNo = [];
+          x = document.getElementsByClassName("select-items");
+          y = document.getElementsByClassName("select-selected");
+          xl = x.length;
+          yl = y.length;
+          for (i = 0; i < yl; i++) {
+            if (elmnt == y[i]) {
+              arrNo.push(i)
+            } else {
+              y[i].classList.remove("select-arrow-active");
+            }
+          }
+          for (i = 0; i < xl; i++) {
+            if (arrNo.indexOf(i)) {
+              x[i].classList.add("select-hide");
+            }
+          }
+        }
+        /*if the user clicks anywhere outside the select box,
+        then close all select boxes:*/
+        document.addEventListener("click", closeAllSelect);
+        </script>
+
+        <script>
+            function myfunc2() {
+                document.getElementById("olay").style.display = "block";
+            }
+
+            function myfunc() {
+                let categoryCode = document.getElementById("categoryCode").value;
+                let postalCode = document.getElementById("postalCode").value;
+                let url = `http://localhost:8080/customer_search?postalCode=${postalCode}&mCC=${categoryCode}`;
+
+                document.getElementById("olay").style.display = "none";
+
+                fetch(url).then(res => res.json())
+                .then(data => {
+                    // let bestPromotionChannel = data.bestPromotionChannel;
+                    // let bestCardProduct = data.bestCardProduct;
+                    // let bestOfferType = data.bestOfferType;
+                    let offerList = data.offerList;
+
+                    document.getElementById("t1").innerHTML = `
+                        <p>Category: Fast Food <br>
+                        Postal Code: 94102 <br>
+                        </p>
+                    `;
+
+                    document.getElementById("remT").style.display = "none";
+
+                    // document.getElementById("jumb").insertAdjacentHTML("beforeend",`
+                    //     <h5>Best Promotion Channel: ${bestPromotionChannel}</h5>
+                    //     <h5>Best Card: ${bestCardProduct}</h5>
+                    //     <h5>Best Offer Type: ${bestOfferType}</h5>
+                    // `);
+
+                    var i;
+                    for(i=0;i<offerList.length;i++) {
+                        if(i%2 == 0) {
+                            document.getElementById('offerTable').insertAdjacentHTML('beforeend',`
+                                <tr>
+                                    <p style="background-color: #f3f3f3;">
+                                        Id: ${offerList[i].offerId}<br>
+                                        Title: ${offerList[i].offerTitle}<br>
+                                        Description: ${offerList[i].offerDesc}<br>
+                                        Valid From: ${offerList[i].validFrom}  Valid Till: ${offerList[i].validTo}<br>
+                                    </p>
+                                </tr>
+                            `);
+                        } else {
+                            document.getElementById('offerTable').insertAdjacentHTML('beforeend',`
+                                <tr>
+                                    <p style="background-color: #FFF;">
+                                        Id: ${offerList[i].offerId}<br>
+                                        Title: ${offerList[i].offerTitle}<br>
+                                        Description: ${offerList[i].offerDesc}<br>
+                                        Valid From: ${offerList[i].validFrom}  Valid Till: ${offerList[i].validTo}<br>
+                                    </p>
+                                </tr>
+                            `);
+                        }
+                    }
+                }).catch(err => console.log(err));
+            }
+        </script>
+
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    </body>
+</html>
