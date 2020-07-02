@@ -4,13 +4,26 @@ import com.visa.developer.sample.offers_data_api.ApiClient;
 import com.visa.developer.sample.offers_data_api.api.OffersDataApiApi;
 import com.visa.developer.sample.offers_data_api.model.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class OffersDataApiCall {
     private final OffersDataApiApi api;
+
+    private static final ConcurrentHashMap<String, Integer> merchantCache = new ConcurrentHashMap<>();
+    private static final HashMap<Integer,Integer> ID = new HashMap<>();
+
+    static {
+        ID.put(80310667, 101456);
+        ID.put(29992901, 101457);
+        ID.put(25837910, 101458);
+        ID.put(14220138, 101459);
+        ID.put(14786696, 101460);
+    }
 
     public OffersDataApiCall(){
         //System.out.println("\nProduct Name: Visa Merchant Offers Resource Center\nApi Name: Offers Data API");
@@ -41,12 +54,6 @@ public class OffersDataApiCall {
         * Since we have dummy offers with dummy merchant ids,
         * we map each dummy merchant to a real merchant id obtained from Merchant Locator
         */
-        HashMap<Integer,Integer> ID = new HashMap<>();
-        ID.put(80310667, 101456);
-        ID.put(29992901, 101457);
-        ID.put(25837910, 101458);
-        ID.put(14220138, 101459);
-        ID.put(14786696, 101460);
 
         for(int i = 0; i < (PostalCodesMerchantIDs.get(0)).size();i++){
             int key = Integer.parseInt(PostalCodesMerchantIDs.get(1).get(i));
@@ -73,7 +80,12 @@ public class OffersDataApiCall {
         //System.out.println(merchantIDQuery);
 
         //Initial Response filtered by nearby merchants only.
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start("retrieve_offers");
         RetrieveOffersByFiltergetResponse response = api.getretrieveOffersByFilter( null,  null,  null,  null,  null,  merchantIDQuery,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null);
+        stopWatch.stop();
+        System.out.println(stopWatch.getLastTaskInfo());
+        System.out.println(stopWatch.prettyPrint());
 
         //Storing offerID list of nearby offers
         ArrayList<Integer> offerIdList = new ArrayList<>();
@@ -103,18 +115,6 @@ public class OffersDataApiCall {
 
         //Passing this offer id list for next call, to get list of all merchants, near and far, and their counts
 
-        StringBuilder offerQuery = new StringBuilder();
-        for(int i = 0; i < offerIdList.size(); i++)
-        {
-            if(i == offerIdList.size() - 1)
-                offerQuery.append(offerIdList.get(i));
-            else
-                offerQuery.append(offerIdList.get(i)).append(",");
-        }
-        //System.out.println(offerQuery);
-        //For getting counts involving all merchants
-        RetrieveOffersByOfferIdgetResponse offerBasedResponse = api.getretrieveOffersByOfferId(offerQuery.toString(),  null,  null,  null,  null);
-
         /*
         * The default vmorc results have only 1 merchant enrolled per offer
         * Our algorithm relies on this enrolled merchant count in each offer
@@ -122,7 +122,7 @@ public class OffersDataApiCall {
          */
         HashMap<Integer,ArrayList<String>> additionalMerchants = populate(offerIdList,numOffers);
 
-        HashMap<Integer, ArrayList<Integer>> merchantCounts = getMerchantCount(offerBasedResponse,offerIdList,PostalCodesMerchantIDs,additionalMerchants,searchPCode,searchCity,numOffers);
+        HashMap<Integer, ArrayList<Integer>> merchantCounts = getMerchantCount(response,offerIdList,PostalCodesMerchantIDs,additionalMerchants,searchPCode,searchCity,numOffers);
 
         ArrayList<Double> scorePoints = calculateScorePoints(MerchantPercentages,merchantCounts,offerIdList);
         ArrayList<Integer> sortedOfferIdList = calculateOfferPoints(offerIdList,scorePoints);
@@ -148,9 +148,9 @@ public class OffersDataApiCall {
             offerItem.setValidFrom(responseOfferDetails.get(2));
             offerItem.setValidTo(responseOfferDetails.get(3));
 
-            oList.add(offerItem);
-            if(i == 2)
+            if(i == 4)
                 break;
+            oList.add(offerItem);
         }
 
         new_res.setOfferList(oList);
@@ -215,7 +215,7 @@ public class OffersDataApiCall {
         return ScorePoints;
     }
 
-    public HashMap<Integer, ArrayList<Integer>> getMerchantCount(RetrieveOffersByOfferIdgetResponse response, ArrayList<Integer> offerIdList, ArrayList<ArrayList<String>> PostalCodesMerchantIDs, HashMap<Integer,ArrayList<String>> additionalMerchants, String postalCode, String city, int numOffers) throws IOException{
+    public HashMap<Integer, ArrayList<Integer>> getMerchantCount(RetrieveOffersByFiltergetResponse response, ArrayList<Integer> offerIdList, ArrayList<ArrayList<String>> PostalCodesMerchantIDs, HashMap<Integer,ArrayList<String>> additionalMerchants, String postalCode, String city, int numOffers) throws IOException{
         HashMap<String,String> dataList = new HashMap<>();
         for(int i = 0; i < PostalCodesMerchantIDs.get(0).size();i++){
             String mID = PostalCodesMerchantIDs.get(1).get(i);
@@ -248,12 +248,16 @@ public class OffersDataApiCall {
             ArrayList<String> addList = additionalMerchants.get(offerIdList.get(i));
             for (String s : addList) {
                 int result;
-                if (addMerchData.containsKey(s))
+                String cacheKey = city + "_" + postalCode + "_" + s;
+                if(merchantCache.containsKey(cacheKey)) {
+                    result = merchantCache.get(cacheKey);
+                } else if (addMerchData.containsKey(s))
                     result = addMerchData.get(s);
                 else {
                     MerchantSearchCall mCall = new MerchantSearchCall();
                     result = mCall.checkCity(s, city, postalCode, PostalCodesMerchantIDs.get(0));
                     addMerchData.put(s, result);
+                    merchantCache.put(cacheKey, result);
                 }
                 if (result == 1) {
                     pCodeCount++;
