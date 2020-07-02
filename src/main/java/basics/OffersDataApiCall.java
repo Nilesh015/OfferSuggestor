@@ -13,14 +13,14 @@ public class OffersDataApiCall {
     private final OffersDataApiApi api;
 
     public OffersDataApiCall(){
-        System.out.println("\nProduct Name: Visa Merchant Offers Resource Center\nApi Name: Offers Data API");
+        //System.out.println("\nProduct Name: Visa Merchant Offers Resource Center\nApi Name: Offers Data API");
         ApiClient apiClient = new ApiClient();
         // Configure HTTP basic authorization: basicAuth
-        apiClient.setUsername("LLT3CK0NZYQT1M9DIOBJ21o-cByoaU-GqBdx2aQm_RFXrBNj0");
-        apiClient.setPassword("o2iEIyXC6op8tB7B");
-        apiClient.setKeystorePath("/home/nilesh015/Desktop/VDP/security/myProject_keyAndCertBundle.jks");
-        apiClient.setKeystorePassword("password");
-        apiClient.setPrivateKeyPassword("password");
+        apiClient.setUsername("YOUR USERNAME");
+        apiClient.setPassword("YOUR PASSWORD");
+        apiClient.setKeystorePath("YOUR KEYSTORE PATH");
+        apiClient.setKeystorePassword("YOUR KEYSTORE PASSWORD");
+        apiClient.setPrivateKeyPassword("YOUR PRIVATEKEY PASSWORD");
 
         // To set proxy uncomment the below lines
         // apiClient.setProxyHostName("proxy.address@example.com");
@@ -36,7 +36,7 @@ public class OffersDataApiCall {
      *
      *          if the Api call fails
      */
-    public OfferSuggestorResponse getBestOfferParameters(ArrayList<ArrayList<String>> PostalCodesMerchantIDs, ArrayList<Double> MerchantPercentages, String searchPCode, String searchCity) throws IOException {
+    public OfferSuggestorResponse getBestOfferParameters(int keyVal, ArrayList<ArrayList<String>> PostalCodesMerchantIDs, ArrayList<Double> MerchantPercentages, String searchPCode, String searchCity) throws IOException {
         /*
         * Since we have dummy offers with dummy merchant ids,
         * we map each dummy merchant to a real merchant id obtained from Merchant Locator
@@ -50,7 +50,7 @@ public class OffersDataApiCall {
 
         for(int i = 0; i < (PostalCodesMerchantIDs.get(0)).size();i++){
             int key = Integer.parseInt(PostalCodesMerchantIDs.get(1).get(i));
-            System.out.println(key);
+            //System.out.println(key);
             if(ID.containsKey(key)){
                 PostalCodesMerchantIDs.get(1).set(i,"" + ID.get(key));
             }
@@ -58,7 +58,7 @@ public class OffersDataApiCall {
 
         ArrayList<String> merchantIDs = PostalCodesMerchantIDs.get(1);
 
-        System.out.println(merchantIDs);
+        //System.out.println(merchantIDs);
 
         StringBuilder merchantIDQueryBuilder = new StringBuilder();
         for(int i = 0; i < merchantIDs.size(); i++)
@@ -70,7 +70,7 @@ public class OffersDataApiCall {
         }
         String merchantIDQuery = merchantIDQueryBuilder.toString();
 
-        System.out.println(merchantIDQuery);
+        //System.out.println(merchantIDQuery);
 
         //Initial Response filtered by nearby merchants only.
         RetrieveOffersByFiltergetResponse response = api.getretrieveOffersByFilter( null,  null,  null,  null,  null,  merchantIDQuery,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null);
@@ -81,7 +81,7 @@ public class OffersDataApiCall {
         HashMap<Integer,ArrayList<String>> mapToDesc = new HashMap<>();
 
         int numOffers = response.getTotalFoundResults();
-        System.out.println(numOffers);
+        //System.out.println(numOffers);
         int offerId;
         for(int i = 0; i < numOffers;i++) {
             offerId = response.getOffers().get(i).getOfferId();
@@ -135,15 +135,7 @@ public class OffersDataApiCall {
             scorePoints.set(i,scorePoints.get(i)/sum);
         }
 
-        //Get best offer parameters
-        String bestPromotionChannel = getBestPromotionChannel(response,numOffers,scorePoints);
-        String bestCardProduct = getBestCardProduct(response,numOffers,scorePoints);
-        String bestOfferType = getBestOfferType(response,numOffers,scorePoints);
-
         OfferSuggestorResponse new_res = new OfferSuggestorResponse();
-        new_res.setBestPromotionChannel(bestPromotionChannel);
-        new_res.setBestCardProduct(bestCardProduct);
-        new_res.setBestOfferType(bestOfferType);
 
         //Return top 3 offer details
         List<OfferItem> oList = new ArrayList<>();
@@ -162,6 +154,19 @@ public class OffersDataApiCall {
         }
 
         new_res.setOfferList(oList);
+
+        if(keyVal == 2)
+            return new_res;
+
+        //Get best offer parameters
+        String bestPromotionChannel = getBestPromotionChannel(response,numOffers,scorePoints);
+        String bestCardProduct = getBestCardProduct(response,numOffers,scorePoints);
+        String bestOfferType = getBestOfferType(response,numOffers,scorePoints);
+
+        new_res.setBestPromotionChannel(bestPromotionChannel);
+        new_res.setBestCardProduct(bestCardProduct);
+        new_res.setBestOfferType(bestOfferType);
+
         return new_res;
     }
 
@@ -180,7 +185,7 @@ public class OffersDataApiCall {
         }
 
         H = sortByValue(H);
-        System.out.println(H);
+        //System.out.println(H);
         ArrayList<Integer> sortedOfferIdList = new ArrayList<>();
         for (Map.Entry<Integer,Double> entry : H.entrySet()){
             sortedOfferIdList.add(entry.getKey());
@@ -270,7 +275,7 @@ public class OffersDataApiCall {
 
             merchantListCount.put(key,counts);
         }
-        System.out.println(merchantListCount);
+        // System.out.println(merchantListCount);
         return merchantListCount;
     }
     public String getBestPromotionChannel(RetrieveOffersByFiltergetResponse response,int numOffers,ArrayList<Double> ScorePoints) {
@@ -314,7 +319,7 @@ public class OffersDataApiCall {
             }
         }
 
-        System.out.println(promotionChannelCount);
+       // System.out.println(promotionChannelCount);
         return best_key;
     }
 
@@ -358,7 +363,7 @@ public class OffersDataApiCall {
                 best_key = key;
             }
         }
-        System.out.println(cardProductCount);
+       // System.out.println(cardProductCount);
         return best_key;
     }
 
@@ -402,7 +407,7 @@ public class OffersDataApiCall {
                 best_key = key;
             }
         }
-        System.out.println(offerTypeCount);
+       // System.out.println(offerTypeCount);
         return best_key;
     }
 
@@ -437,7 +442,7 @@ public class OffersDataApiCall {
         for(int i = 0; i < numOffers; i++){
             additionalMerchants.put(offerIDList.get(i),mList.get(i));
         }
-        System.out.println(additionalMerchants);
+       // System.out.println(additionalMerchants);
         return additionalMerchants;
     }
 
@@ -480,16 +485,31 @@ public class OffersDataApiCall {
         return json;
     }
     */
-    public ArrayList<Integer> getRetrieveOffersByFilterHandler(OfferFilterDTO offerFilterDTO) {
-        ArrayList<Integer> offer_ids = new ArrayList<>();
-        RetrieveOffersByFiltergetResponse response = api.getretrieveOffersByFilter( offerFilterDTO.getBusinessSegment(),offerFilterDTO.getCardPayment(), offerFilterDTO.getCardProduct(),  null,  null,  null,  null,  offerFilterDTO.getPromotionalChannel(),  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null);
-        System.out.println(response);
-        int numOffers=response.getReturnedResults();
-        for(int i=0;i<numOffers;i++) {
-            int offerId = response.getOffers().get(i).getOfferId();
-            offer_ids.add(offerId);
+    public OfferSuggestorResponse getRetrieveOffersByFilterHandler(OfferFilterDTO offerFilterDTO) {
+        //System.out.println(response);
+
+        RetrieveOffersByFiltergetResponse retrieveOffersByFiltergetResponse = api.getretrieveOffersByFilter(offerFilterDTO.getBusinessSegment(), offerFilterDTO.getCardPayment(), offerFilterDTO.getCardProduct(), null, null, null, null, offerFilterDTO.getPromotionalChannel(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+
+        OfferSuggestorResponse new_res = new OfferSuggestorResponse();
+
+        int numOffers = retrieveOffersByFiltergetResponse.getReturnedResults();
+        List<OfferItem> oList = new ArrayList<>();
+
+        for(int i = 0; i < numOffers; i++){
+            OfferItem offerItem = new OfferItem();
+            OffersInner offersInner = retrieveOffersByFiltergetResponse.getOffers().get(i);
+            offerItem.setOfferId(String.valueOf(offersInner.getOfferId()));
+            offerItem.setOfferTitle(offersInner.getOfferTitle());
+            offerItem.setOfferDesc(offersInner.getOfferShortDescription().getText());
+            offerItem.setValidFrom(offersInner.getValidityFromDate());
+            offerItem.setValidTo(offersInner.getValidityToDate());
+
+            oList.add(offerItem);
         }
-        return offer_ids;
+
+        new_res.setOfferList(oList);
+
+        return new_res;
     }
 
     /*

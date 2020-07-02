@@ -5,17 +5,12 @@ import com.visa.developer.sample.merchant_benchmark_api.ApiClient;
 import com.visa.developer.sample.merchant_benchmark_api.api.MerchantBenchmarkApi;
 import com.visa.developer.sample.merchant_benchmark_api.model.MerchantBenchmarkpostPayload;
 import com.visa.developer.sample.merchant_benchmark_api.model.MerchantBenchmarkpostResponse;
-import org.threeten.bp.LocalDateTime;
-import org.threeten.bp.ZoneId;
-import org.threeten.bp.ZonedDateTime;
-import org.threeten.bp.format.DateTimeFormatter;
-import org.threeten.bp.temporal.ChronoUnit;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Random;
-import java.util.UUID;
 
+@Service
 public class MerchantMeasurementCall {
     private final MerchantBenchmarkApi api;
 
@@ -23,11 +18,11 @@ public class MerchantMeasurementCall {
         System.out.println("\nProduct Name: Merchant Measurement\nApi Name: Merchant Benchmark API");
         ApiClient apiClient = new ApiClient();
         // Configure HTTP basic authorization: basicAuth
-        apiClient.setUsername("LLT3CK0NZYQT1M9DIOBJ21o-cByoaU-GqBdx2aQm_RFXrBNj0");
-        apiClient.setPassword("o2iEIyXC6op8tB7B");
-        apiClient.setKeystorePath("/home/nilesh015/Desktop/VDP/security/myProject_keyAndCertBundle.jks");
-        apiClient.setKeystorePassword("password");
-        apiClient.setPrivateKeyPassword("password");
+        apiClient.setUsername("YOUR USERNAME");
+        apiClient.setPassword("YOUR PASSWORD");
+        apiClient.setKeystorePath("YOUR KEYSTORE PATH");
+        apiClient.setKeystorePassword("YOUR KEYSTORE PASSWORD");
+        apiClient.setPrivateKeyPassword("YOUR PRIVATEKEY PASSWORD");
 
         // To set proxy uncomment the below lines
         // apiClient.setProxyHostName("proxy.address@example.com");
