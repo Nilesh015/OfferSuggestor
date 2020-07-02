@@ -65,7 +65,8 @@ public class MerchantSearchCall {
         //System.out.println(merchantID + "," + city + "," + postalCode);
         ModelResponse response = api.postmerchantSearch(body);
         String pVal = response.getMerchantSearchpostResponse().getResponse().get(0).getResponseValues().getMerchantPostalCode();
-        pVal = pVal.substring(0,pVal.indexOf('-'));
+        if(pVal.indexOf('-') != -1)
+            pVal = pVal.substring(0,pVal.indexOf('-'));
         String cVal = response.getMerchantSearchpostResponse().getResponse().get(0).getMatchIndicators().getMerchantCity();
         String mVal = response.getMerchantSearchpostResponse().getResponse().get(0).getMatchIndicators().getVisaMerchantId();
         //System.out.println(mVal + "," + cVal + "," + pVal);

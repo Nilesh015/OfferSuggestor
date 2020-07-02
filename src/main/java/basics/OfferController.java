@@ -50,7 +50,9 @@ public class OfferController {
         stopWatch.stop();
         System.out.println(stopWatch.getLastTaskInfo());
 
-        String postalCode = (attributes.get(0)).substring(0, attributes.get(0).indexOf('-'));
+        String postalCode = (attributes.get(0));
+        if(postalCode.indexOf('-') != -1)
+        postalCode = postalCode.substring(0, postalCode.indexOf('-'));
         String mCC = attributes.get(1);
         String city = attributes.get(2);
 
@@ -125,7 +127,8 @@ public class OfferController {
                     cities.add(s2);
                     MerchantIDs.add(s1);
                     int k = s.indexOf('-');
-                    s = s.substring(0, k);
+                    if(k != -1)
+                        s = s.substring(0, k);
                     PostalCodes.add(s);
                 }
             } catch (Exception e) {
